@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Instrument_Sans, Newsreader } from "next/font/google";
+import { Sidebar } from "@/components/shell/sidebar";
+import { TopBar } from "@/components/shell/top-bar";
+import { DemoStoreHydrator } from "@/state/demo-store-hydrator";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -31,7 +34,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="en-AU"
       className={`${newsreader.variable} ${instrumentSans.variable} ${plexMono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <DemoStoreHydrator />
+        <div className="flex min-h-screen bg-canvas">
+          <Sidebar />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <TopBar />
+            {children}
+          </div>
+        </div>
+      </body>
     </html>
   );
 }
