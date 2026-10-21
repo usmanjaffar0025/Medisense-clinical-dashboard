@@ -75,6 +75,20 @@
   --text-eyebrow: 11px;
   --text-eyebrow--line-height: 14px;
 
+  /* Serif figure sizes used inside metric bands, tables and reports. */
+  --text-stat: 28px;
+  --text-stat--line-height: 32px;
+  --text-stat-sm: 24px;
+  --text-stat-sm--line-height: 30px;
+  --text-figure: 18px;
+  --text-figure--line-height: 24px;
+  --text-section: 16px;
+  --text-section--line-height: 22px;
+  --text-report-heading: 17px;
+  --text-report-heading--line-height: 24px;
+  --text-report-title: 26px;
+  --text-report-title--line-height: 32px;
+
   --radius-tag: 4px;
   --radius-control: 6px;
   --radius-card: 10px;
@@ -82,6 +96,11 @@
 
   --shadow-overlay: 0 1px 2px rgb(30 28 25 / 0.06), 0 12px 32px rgb(30 28 25 / 0.1);
   --shadow-focus: 0 0 0 3px rgb(46 90 76 / 0.28);
+  --shadow-flag: inset 0 2px 0 #c08a2e;
+  --shadow-rule-over: inset 2px 0 0 #c0563c;
+  --shadow-rule-accent: inset 2px 0 0 #2e5a4c;
+  --shadow-hairline: 0 0 0 1px #e2dbcf;
+  --shadow-underline-accent: inset 0 -1px 0 #2e5a4c;
 
   --container-content: 1280px;
   --spacing-sidebar: 248px;
