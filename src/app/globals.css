@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens from docs/design-system.md.
+ * The default Tailwind palette is cleared so only Medisense colours can be used.
+ */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-canvas: #f5f1ea;
+  --color-sidebar: #efeae1;
+  --color-surface: #fcfaf6;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #eee9e0;
+  --color-border: #e2dbcf;
+  --color-border-strong: #cfc6b7;
+
+  --color-ink-900: #1e1c19;
+  --color-ink-700: #4a453e;
+  --color-ink-500: #7a7368;
+  --color-ink-400: #a39c90;
+
+  --color-accent: #2e5a4c;
+  --color-accent-hover: #244a3e;
+  --color-accent-pressed: #1c3b31;
+  --color-accent-tint: #e3ece6;
+
+  --color-healthy: #3d6e4f;
+  --color-healthy-bg: #e5efe6;
+  --color-healthy-dot: #5a8f6a;
+  --color-monitor: #8a5a12;
+  --color-monitor-bg: #f5e9d2;
+  --color-monitor-dot: #c08a2e;
+  --color-over: #9c3b26;
+  --color-over-bg: #f4e0d8;
+  --color-over-dot: #c0563c;
+  --color-available: #3e5670;
+  --color-available-bg: #e3e9ef;
+  --color-available-dot: #6e8296;
+
+  --color-draft: #f8f3e6;
+  --color-draft-rule: #c9b98f;
+  --color-brass: #9c8452;
+
+  --color-chart-evergreen: #2e5a4c;
+  --color-chart-sage: #8fae9c;
+  --color-chart-sand: #cdbf9f;
+  --color-chart-slate: #6e8296;
+  --color-chart-stone: #a39c90;
+  --color-chart-clay: #c0563c;
+
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-sans: var(--font-instrument-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --text-display: 34px;
+  --text-display--line-height: 40px;
+  --text-h1: 28px;
+  --text-h1--line-height: 34px;
+  --text-h2: 20px;
+  --text-h2--line-height: 28px;
+  --text-kpi: 36px;
+  --text-kpi--line-height: 40px;
+  --text-h3: 15px;
+  --text-h3--line-height: 22px;
+  --text-body: 14px;
+  --text-body--line-height: 21px;
+  --text-small: 13px;
+  --text-small--line-height: 19px;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-eyebrow: 11px;
+  --text-eyebrow--line-height: 14px;
+
+  --radius-tag: 4px;
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-sheet: 14px;
+
+  --shadow-overlay: 0 1px 2px rgb(30 28 25 / 0.06), 0 12px 32px rgb(30 28 25 / 0.1);
+  --shadow-focus: 0 0 0 3px rgb(46 90 76 / 0.28);
+
+  --container-content: 1280px;
+  --spacing-sidebar: 248px;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-canvas);
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+@utility eyebrow {
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+}
+
+@utility headline {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
