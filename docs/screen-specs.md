@@ -101,7 +101,7 @@ Screen order follows the demo story:
 
 **Header:** h1 **Clients requiring attention** · sub _"Requires review based on configured operational indicators."_ · right: `Configure indicators` (ghost).
 
-**Row 1: summary band.** 14 clients · 2 High · 7 Medium · 5 Low · _Most common reason: follow-up overdue (5)_.
+**Row 1: summary band.** 14 clients · 2 High · 7 Medium · 5 Low · _Most common reason: documentation (7), computed from the rows_.
 
 **Row 2: filters.** Priority, Clinician, Reason type (No recent appointment · Follow-up overdue · Documentation · Funding/goal review · Cancellations), search.
 

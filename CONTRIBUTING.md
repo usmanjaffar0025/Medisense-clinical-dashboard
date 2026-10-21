@@ -34,7 +34,7 @@ Medisense is a client-facing product demo. It must read as deliberately designed
 
 The design system in `docs/design-system.md` is the source of truth.
 
-- Colours, type sizes, radii and shadows come from tokens in `src/app/globals.css`. No raw hex values or arbitrary Tailwind values in components.
+- Colours, type sizes, radii and shadows come from tokens in `src/app/globals.css`. No raw hex values, and no arbitrary Tailwind values for colour, type, radius or shadow. Arbitrary grid templates are fine for table and page layouts.
 - Newsreader for headings and key numerals, Instrument Sans for interface text, IBM Plex Mono for audit timestamps. Tabular figures for all numbers.
 - Banned: gradients, glassmorphism, glow, purple "AI" colours, sparkle or robot icons, emoji, shadows on resting cards, radii above 14px.
 - Every AI output is shown as a draft with the label "AI Generated Draft — Clinician Review Required" and an explicit human approval action.
