@@ -6,7 +6,7 @@ export default function NotFound() {
     <PageContainer>
       <PageHeader
         eyebrow="Page not found"
-        title="This page isn’t part of the demo."
+        title="We couldn’t find that page."
         description="Use the navigation to return to a Medisense screen."
         actions={
           <ButtonLink href="/" variant="primary">

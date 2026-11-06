@@ -1,31 +1,61 @@
 export type Complexity = "High" | "Medium" | "Low";
 
-export type CaseloadStatus = "healthy" | "monitor" | "over";
+export type CaseloadStatus = "healthy" | "monitor" | "at-risk";
 
-export type Priority = "High" | "Medium" | "Low";
+export type Priority = "High" | "Medium" | "Review";
+
+export type Discipline = "Occupational Therapy" | "Speech Pathology";
+
+/** Medisense works from client homes, so clinicians are grouped by service region, not clinic. */
+export type Site = "Brisbane North" | "Brisbane South";
+
+export type Funding = "NDIS" | "Aged care";
+
+export type ComplexityMix = { high: number; medium: number; low: number };
+
+/** Twelve weekly values, oldest first, ending with the week of 19 Oct. */
+export type WeeklySeries = number[];
 
 export type Clinician = {
   id: string;
   name: string;
   firstName: string;
   role: string;
-  site: "Richmond" | "Box Hill";
+  discipline: Discipline;
+  site: Site;
   fte: number;
   active: number;
   capacity: number;
   utilisation: number;
   complexity: Complexity;
+  mix: ComplexityMix;
   highComplexity: number;
+  weightedUnits: number;
+  weightedCapacity: number;
   notesOverdue: number;
+  draftsAwaiting: number;
+  notesDue: number;
   followUpsOverdue: number;
+  funding: { ndis: number; agedCare: number };
+  adminHours: number;
+  adminTarget: number;
   nextSupervision: string;
   supervisionNote: string;
+  supervisionDue: boolean;
+  supervisionHistory: SupervisionOutcome[];
   score: number;
   status: CaseloadStatus;
-  available?: boolean;
-  weightedUnits?: number;
-  weightedCapacity?: number;
+  available: boolean;
+  history: {
+    active: WeeklySeries;
+    notesDue: WeeklySeries;
+    followUpsOverdue: WeeklySeries;
+    score: WeeklySeries;
+    adminHours: WeeklySeries;
+  };
 };
+
+export type SupervisionOutcome = "held" | "rescheduled" | "cancelled";
 
 export type ScoreFactor = {
   label: string;
@@ -62,6 +92,9 @@ export type CaseloadClient = {
   name: string;
   age: number;
   service: string;
+  funding: Funding;
+  /** Months the client has been seen by this clinician, for continuity of care. */
+  tenureMonths: number;
   lastSession: string;
   nextAppointment: { kind: "booked" | "today"; label: string } | { kind: "not-booked" | "paused" };
   complexity: Complexity;
@@ -78,6 +111,7 @@ export type AttentionClient = {
   id: string;
   name: string;
   clinician: string;
+  funding: Funding;
   priority: Priority;
   reason: string;
   daysSinceContact: number;
@@ -86,7 +120,8 @@ export type AttentionClient = {
 
 export type AuditEntry = {
   id: string;
-  day: "2026-10-20" | "2026-10-19";
+  /** ISO date, moved to today by `dt` in the clock module. */
+  day: string;
   time: string;
   actor: string;
   isAi: boolean;

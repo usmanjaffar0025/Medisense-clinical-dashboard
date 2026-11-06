@@ -1,36 +1,75 @@
 import { ArrowRight } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { countByPriority } from "@/data/attention";
+import type { AttentionClient, Clinician } from "@/data/types";
 import { cn } from "@/lib/cn";
 
-const items = [
-  {
-    eyebrow: "Capacity",
-    urgent: true,
-    title: "Sarah Thompson is above configured capacity.",
-    detail: "27 of 25 · 6 high-complexity · 4 notes overdue",
-    action: "Review caseload",
-    href: "/caseloads/sarah-thompson",
-  },
-  {
+type Item = {
+  eyebrow: string;
+  urgent?: boolean;
+  title: string;
+  detail: string;
+  action: string;
+  href: string;
+};
+
+export function AttentionPanel({
+  list,
+  attention,
+}: {
+  list: Clinician[];
+  attention: AttentionClient[];
+}) {
+  const atRisk = list.filter((c) => c.status === "at-risk");
+  const due = list.filter((c) => c.supervisionDue);
+  const firstAtRisk = atRisk[0];
+  const items: Item[] = [];
+
+  if (firstAtRisk) {
+    items.push({
+      eyebrow: "Capacity",
+      urgent: true,
+      title: `${firstAtRisk.name} is above configured capacity.`,
+      detail: `${firstAtRisk.active} of ${firstAtRisk.capacity} · ${firstAtRisk.highComplexity} high-complexity · ${firstAtRisk.notesOverdue} notes overdue`,
+      action: "Review caseload",
+      href: "/caseloads/sarah-thompson",
+    });
+  }
+  items.push({
     eyebrow: "Clients",
-    title: "14 clients require review.",
-    detail: "2 high priority",
-    action: "Open list",
+    title: `${attention.length} clients require review.`,
+    detail: `${countByPriority(attention, "High")} high priority · continuity of care`,
+    action: "Open queue",
     href: "/clients-requiring-attention",
-  },
-  {
+  });
+  const overdue = list.reduce((sum, c) => sum + c.notesOverdue, 0);
+  const drafts = list.reduce((sum, c) => sum + c.draftsAwaiting, 0);
+  const followUps = list.reduce((sum, c) => sum + c.followUpsOverdue, 0);
+  items.push({
+    eyebrow: "Documentation",
+    title: `${overdue + drafts} notes due across the team.`,
+    detail: `${overdue} overdue · ${drafts} AI drafts awaiting clinician approval`,
+    action: "Open case notes",
+    href: "/case-notes/mia-robinson",
+  });
+  items.push({
+    eyebrow: "Follow-ups",
+    title: `${followUps} client follow-ups are overdue.`,
+    detail: "Surfaced from scheduling data before clients slip through gaps",
+    action: "Assign owners",
+    href: "/clients-requiring-attention",
+  });
+  items.push({
     eyebrow: "Supervision",
-    title: "5 supervision sessions in the next 14 days.",
-    detail: "Next: Sarah Thompson, Thu 2:00 pm",
+    title: `${due.length} supervision sessions in the next 14 days.`,
+    detail: due[0] ? `Next: ${due.map((c) => c.firstName).join(", ")}` : "None scheduled",
     action: "Prepare",
     href: "/supervision/sarah-thompson",
-  },
-];
+  });
 
-export function AttentionPanel() {
   return (
-    <Card aria-labelledby="needs-attention">
+    <Card aria-labelledby="needs-attention" className="flex h-full flex-col">
       <div className="px-5 pt-5 pb-3.5">
         <h2 id="needs-attention" className="headline text-h2">
           Needs your attention
@@ -39,7 +78,7 @@ export function AttentionPanel() {
       {items.map((item) => (
         <div
           key={item.eyebrow}
-          className="flex flex-col gap-1.5 border-t border-border px-5 py-4.5"
+          className="flex flex-1 flex-col justify-center gap-1.5 border-t border-border px-5 py-4"
         >
           <div className={cn("eyebrow", item.urgent && "text-over")}>{item.eyebrow}</div>
           <div className="font-semibold">{item.title}</div>

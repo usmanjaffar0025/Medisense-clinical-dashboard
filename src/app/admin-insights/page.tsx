@@ -1,6 +1,5 @@
 import { Download } from "lucide-react";
 import type { Metadata } from "next";
-import { TimeDonut, categoryColour } from "@/components/charts/time-donut";
 import { Button } from "@/components/ui/button";
 import { Caption, Card } from "@/components/ui/card";
 import { PageContainer, PageHeader } from "@/components/ui/page";
@@ -10,9 +9,8 @@ import {
   automationTotal,
   guardrails,
   loggedHoursPerWeek,
-  timeByCategory,
 } from "@/data/admin";
-import { cn } from "@/lib/cn";
+import { AdminByClinician, AdminTrend, TimeBreakdown } from "@/features/admin/admin-charts";
 
 export const metadata: Metadata = { title: "Admin insights · Medisense" };
 
@@ -24,7 +22,7 @@ export default function AdminInsightsPage() {
       <PageHeader
         eyebrow="Admin insights"
         title="Where clinician time goes"
-        description={`All clinicians · last 4 weeks · ≈${loggedHoursPerWeek} logged hours per week.`}
+        description={`All 12 clinicians · last 4 weeks · ≈${loggedHoursPerWeek} logged hours per week.`}
         actions={
           <Button>
             <Download className="size-4" strokeWidth={1.5} aria-hidden="true" />
@@ -33,42 +31,15 @@ export default function AdminInsightsPage() {
         }
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-12">
-        <Card aria-labelledby="time-by-category" className="px-6 pt-5 pb-4.5 lg:col-span-5">
-          <h2 id="time-by-category" className="headline text-h2">
-            Time by category
-          </h2>
-          <Caption className="mt-1">Average logged hours per week</Caption>
-          <div className="flex justify-center pt-5 pb-4">
-            <TimeDonut categories={timeByCategory} />
-          </div>
-          <div className="border-t border-border-strong" role="table" aria-label="Time by category">
-            <div
-              role="row"
-              className="grid grid-cols-[minmax(0,1fr)_56px_56px] gap-3 border-b border-border py-2 eyebrow"
-            >
-              <span>Category</span>
-              <span className="text-right">Share</span>
-              <span className="text-right">Hrs/wk</span>
-            </div>
-            {timeByCategory.map((c) => (
-              <div
-                key={c.label}
-                role="row"
-                className="grid grid-cols-[minmax(0,1fr)_56px_56px] items-center gap-3 border-b border-border py-2.5 text-small last:border-b-0"
-              >
-                <span className="flex items-center gap-2">
-                  <span className={cn("size-2.5 rounded-xs", categoryColour[c.colour].fill)} />
-                  {c.label}
-                </span>
-                <span className="text-right">{c.share}%</span>
-                <span className="text-right">{c.hours}h</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+      <div className="grid items-stretch gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-5">
+          <TimeBreakdown />
+        </div>
 
-        <Card aria-labelledby="opportunities" className="overflow-hidden lg:col-span-7">
+        <Card
+          aria-labelledby="opportunities"
+          className="flex flex-col overflow-hidden lg:col-span-7"
+        >
           <div className="border-b border-border px-5 pt-5 pb-4">
             <h2 id="opportunities" className="headline text-h2">
               Safe automation opportunities
@@ -96,10 +67,10 @@ export default function AdminInsightsPage() {
                 </div>
                 <span className="w-7.5 text-right text-small">{o.hours}h</span>
               </div>
-              <Tag tone={o.live ? "live" : "neutral"}>{o.live ? "Live in demo" : "Available"}</Tag>
+              <Tag tone={o.live ? "live" : "neutral"}>{o.live ? "Live" : "Available"}</Tag>
             </div>
           ))}
-          <div className="flex flex-wrap items-baseline justify-between gap-3 bg-surface-sunken px-5 py-4">
+          <div className="mt-auto flex flex-wrap items-baseline justify-between gap-3 bg-surface-sunken px-5 py-4">
             <span className="eyebrow">Total</span>
             <span>
               <span className="headline text-stat font-normal">{automationTotal.hours}</span>{" "}
@@ -108,6 +79,13 @@ export default function AdminInsightsPage() {
             </span>
           </div>
         </Card>
+
+        <div className="lg:col-span-7">
+          <AdminTrend />
+        </div>
+        <div className="lg:col-span-5">
+          <AdminByClinician />
+        </div>
 
         <section
           aria-label="Guardrails"

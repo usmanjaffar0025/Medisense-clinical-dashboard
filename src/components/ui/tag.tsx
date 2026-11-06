@@ -28,20 +28,26 @@ export function Tag({ tone, children }: { tone: TagTone; children: ReactNode }) 
   );
 }
 
-const statusLabels: Record<CaseloadStatus, string> = {
+export const statusLabels: Record<CaseloadStatus, string> = {
   healthy: "Healthy",
   monitor: "Monitor",
-  over: "Over Capacity",
+  "at-risk": "At Risk",
+};
+
+const statusTones: Record<CaseloadStatus, TagTone> = {
+  healthy: "healthy",
+  monitor: "monitor",
+  "at-risk": "over",
 };
 
 export function StatusTag({ status }: { status: CaseloadStatus }) {
-  return <Tag tone={status}>{statusLabels[status]}</Tag>;
+  return <Tag tone={statusTones[status]}>{statusLabels[status]}</Tag>;
 }
 
 export const priorityTone: Record<Priority, TagTone> = {
   High: "over",
   Medium: "monitor",
-  Low: "neutral",
+  Review: "neutral",
 };
 
 export function PriorityTag({ priority }: { priority: Priority }) {

@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { PenNib } from "@/components/ai/provenance";
 import { Button } from "@/components/ui/button";
 import { auditDayLabels } from "@/data/audit";
+import { dt } from "@/lib/clock";
 import type { AuditEntry } from "@/data/types";
 import { cn } from "@/lib/cn";
 import { useDemoStore } from "@/state/demo-store";
@@ -71,7 +72,7 @@ export function AuditDrawer({ open, onClose }: { open: boolean; onClose: () => v
         <div className="flex-1 overflow-y-auto px-6 pt-5 pb-6">
           {groups.map(({ day, items }) => (
             <div key={day} className="mb-5">
-              <div className="mb-3 eyebrow">{auditDayLabels[day]}</div>
+              <div className="mb-3 eyebrow">{auditDayLabels[day] ?? day}</div>
               <ol className="ml-11.5 border-l border-border">
                 {items.map((e) => (
                   <li key={e.id} className="relative flex gap-3.5 pb-4.5 pl-4.5">
@@ -107,11 +108,11 @@ export function AuditDrawer({ open, onClose }: { open: boolean; onClose: () => v
 
         <div className="flex items-center justify-between gap-3 rounded-bl-sheet border-t border-border bg-surface px-6 py-3.5">
           <span className="text-caption font-medium text-ink-500">
-            {audit.length} entries · 19–20 Oct
+            {audit.length} entries · {dt("19 Oct")} – {dt("20 Oct")}
           </span>
           <div className="flex gap-2">
             <Button size="sm" variant="ghost" onClick={resetDemo}>
-              Reset demo
+              Reset session
             </Button>
             <Button size="sm">Export log</Button>
           </div>

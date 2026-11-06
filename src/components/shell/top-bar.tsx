@@ -1,20 +1,37 @@
 "use client";
 
-import { ChevronRight, History, Search } from "lucide-react";
+import { ChevronRight, History } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { PenNib } from "@/components/ai/provenance";
 import { organisation } from "@/data/organisation";
 import { cn } from "@/lib/cn";
 import { roleHome, routeMeta, type Role } from "@/lib/navigation";
+import { useDemoStore } from "@/state/demo-store";
+import { AssistantPanel } from "./assistant-panel";
 import { AuditDrawer } from "./audit-drawer";
 
-const roles: Role[] = ["Leadership", "Supervisor", "Clinician"];
+const roles: Role[] = ["Leadership", "Admin", "Supervisor", "Clinician"];
 
 export function TopBar() {
   const pathname = usePathname();
-  const { section, page, role } = routeMeta(pathname);
+  const { section, page } = routeMeta(pathname);
+  const role = useDemoStore((s) => s.role);
+  const setRole = useDemoStore((s) => s.setRole);
   const [auditOpen, setAuditOpen] = useState(false);
+  const [assistant, setAssistant] = useState<{ open: boolean; question: string; key: number }>({
+    open: false,
+    question: "",
+    key: 0,
+  });
+  const [draftQuestion, setDraftQuestion] = useState("");
+  const closeAssistant = useCallback(() => setAssistant((a) => ({ ...a, open: false })), []);
+
+  function openAssistant(question: string) {
+    setAssistant((a) => ({ open: true, question, key: a.key + 1 }));
+    setDraftQuestion("");
+  }
 
   return (
     <>
@@ -39,6 +56,7 @@ export function TopBar() {
                 <Link
                   key={r}
                   href={roleHome[r]}
+                  onClick={() => setRole(r)}
                   aria-current={r === role ? "page" : undefined}
                   className={cn(
                     "flex h-7 items-center rounded-tag px-2.5 text-small hover:no-underline",
@@ -53,22 +71,29 @@ export function TopBar() {
             </div>
           </div>
 
-          <label className="flex h-9 w-59 cursor-text items-center gap-2 rounded-control border border-border bg-surface pr-2 pl-2.5 focus-within:shadow-focus">
-            <Search
-              className="size-4 flex-none text-ink-500"
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              openAssistant(draftQuestion);
+            }}
+            className="flex h-9 w-72 items-center gap-2 rounded-control border border-border bg-surface pr-1 pl-2.5 focus-within:shadow-focus"
+          >
+            <PenNib className="text-brass" />
             <input
-              type="search"
-              aria-label="Search clients and clinicians"
-              placeholder="Search clients, clinicians"
+              type="text"
+              value={draftQuestion}
+              onChange={(e) => setDraftQuestion(e.target.value)}
+              aria-label="Ask Medisense"
+              placeholder="Ask Medisense…"
               className="min-w-0 flex-1 border-0 bg-transparent text-small text-ink-900 outline-none placeholder:text-ink-400 focus-visible:shadow-none"
             />
-            <kbd className="rounded-tag border border-border bg-canvas px-1.25 py-px font-sans text-eyebrow font-semibold text-ink-500">
-              ⌘K
-            </kbd>
-          </label>
+            <button
+              type="submit"
+              className="h-7 cursor-pointer rounded-tag bg-accent-fill px-2 text-caption font-semibold text-on-accent hover:bg-accent-fill-hover"
+            >
+              Ask
+            </button>
+          </form>
 
           <button
             type="button"
@@ -84,6 +109,13 @@ export function TopBar() {
       </header>
 
       <AuditDrawer open={auditOpen} onClose={() => setAuditOpen(false)} />
+      {assistant.open && (
+        <AssistantPanel
+          key={assistant.key}
+          initialQuestion={assistant.question}
+          onClose={closeAssistant}
+        />
+      )}
     </>
   );
 }

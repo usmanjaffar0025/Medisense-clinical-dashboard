@@ -1,10 +1,9 @@
 "use client";
 
-import { CalendarDays } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Caption } from "@/components/ui/card";
-import { followUpDefaults } from "@/data/attention";
+import { followUpDefaults, followUpDueOptions, followUpReasons } from "@/data/attention";
 import type { AttentionClient } from "@/data/types";
 import type { FollowUpAssignment } from "@/state/demo-store";
 
@@ -21,8 +20,13 @@ export function AssignFollowUpPopover({
   onAssign: (assignment: FollowUpAssignment) => void;
   onCancel: () => void;
 }) {
-  const assignees = [...new Set([client.clinician, followUpDefaults.supervisor])];
-  const [assignee, setAssignee] = useState(client.clinician);
+  const owners = [...new Set([client.clinician, followUpDefaults.supervisor, "Neil Hensley"])];
+  const firstReason = client.reasonTypes[0];
+  const [owner, setOwner] = useState(client.clinician);
+  const [due, setDue] = useState(followUpDefaults.due);
+  const [reason, setReason] = useState(
+    firstReason ? followUpDefaults.reasons[firstReason] : (followUpReasons[0] ?? ""),
+  );
   const [note, setNote] = useState(followUpDefaults.notes[client.id] ?? followUpDefaults.note);
 
   useEffect(() => {
@@ -35,36 +39,47 @@ export function AssignFollowUpPopover({
     <div
       role="dialog"
       aria-label={`Assign follow-up for ${client.name}`}
-      className="absolute top-full right-4 z-5 -mt-1.5 w-90 rounded-card border border-border bg-surface-raised text-left shadow-overlay"
+      className="absolute top-full right-4 z-5 -mt-1.5 w-96 rounded-card border border-border bg-surface-raised text-left shadow-overlay"
     >
       <div className="px-4.5 pt-4 pb-1">
         <div className="eyebrow">Assign follow-up</div>
         <div className="mt-1 headline text-figure">{client.name}</div>
+        <Caption className="mt-0.5">{client.reason}</Caption>
       </div>
-      <div className="flex flex-col gap-3 px-4.5 pt-3 pb-4">
+      <div className="grid grid-cols-2 gap-3 px-4.5 pt-3 pb-4">
         <label className="flex flex-col gap-1.5">
-          <span className={fieldLabel}>Assign to</span>
+          <span className={fieldLabel}>Owner</span>
           <select
             className={`${input} h-9`}
-            value={assignee}
-            onChange={(e) => setAssignee(e.target.value)}
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
           >
-            {assignees.map((a) => (
+            {owners.map((a) => (
               <option key={a}>{a}</option>
             ))}
           </select>
         </label>
-        <div className="flex flex-col gap-1.5">
-          <span className={fieldLabel}>Due</span>
-          <button
-            type="button"
-            className={`${input} flex h-9 cursor-pointer items-center justify-between text-left`}
-          >
-            {followUpDefaults.due}
-            <CalendarDays className="size-4 text-ink-500" strokeWidth={1.5} aria-hidden="true" />
-          </button>
-        </div>
         <label className="flex flex-col gap-1.5">
+          <span className={fieldLabel}>Due date</span>
+          <select className={`${input} h-9`} value={due} onChange={(e) => setDue(e.target.value)}>
+            {followUpDueOptions.map((d) => (
+              <option key={d}>{d}</option>
+            ))}
+          </select>
+        </label>
+        <label className="col-span-2 flex flex-col gap-1.5">
+          <span className={fieldLabel}>Reason</span>
+          <select
+            className={`${input} h-9`}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          >
+            {followUpReasons.map((r) => (
+              <option key={r}>{r}</option>
+            ))}
+          </select>
+        </label>
+        <label className="col-span-2 flex flex-col gap-1.5">
           <span className={fieldLabel}>Note</span>
           <textarea
             rows={2}
@@ -87,8 +102,9 @@ export function AssignFollowUpPopover({
               onAssign({
                 clientId: client.id,
                 client: client.name,
-                assignee,
-                due: followUpDefaults.due,
+                assignee: owner,
+                due,
+                reason,
                 note,
               })
             }

@@ -161,7 +161,7 @@ export function ReportDraft() {
           )}
         </div>
 
-        <p className="eyebrow">Kestrel Allied Health · Occupational Therapy</p>
+        <p className="eyebrow">Medisense · Occupational Therapy</p>
         <h2 className="mt-1.5 mb-4 headline text-report-title">Progress Report</h2>
         <dl className="mb-2 grid overflow-hidden rounded-control border border-border bg-surface sm:grid-cols-2">
           {emilyReport.details.map((d, i) => (

@@ -30,6 +30,16 @@
 
 ## 2. Colour tokens
 
+> **Revision 2: Pearl & Champagne palette.** The values in `src/app/globals.css` replace the hex values in the tables below; the token names and rules are unchanged.
+>
+> - Backgrounds: app `#F5F3EE`, surface `#FFFFFF`, elevated/sunken `#FAF8F3`. Borders: hairline `rgba(23,21,15,0.08)`, strong `rgba(23,21,15,0.16)`; chart gridlines `rgba(23,21,15,0.06)`.
+> - Text: primary `#17150F`, secondary `#5E5B54`, tertiary `#8C8981` (non-essential labels only).
+> - Accent: **bronze `#8A6A2B`** for text accents, links, key figures and chart lines (`accent`); **champagne `#C9A96A`** fill for primary buttons and selected markers (`accent-fill`, hover `#D6B97E`, pressed `#B39454`) with `#14110A` text (`on-accent`); subtle fill `rgba(201,169,106,0.16)` (`accent-tint`).
+> - Semantic, each with a 10% tinted fill and always paired with a label: critical `#C4432F` (`over`), warning `#A8680F` (`monitor`), success `#2E8B63` (`healthy`), info `#2F6DB5` (`available`).
+> - Chart series (max 4), in validated order: teal `#4A8A84`, bronze-champagne `#B8934A`, slate-blue `#5A7094`, warm gray `#8C8478`.
+> - Navigation rail: obsidian `#0A0B0D` with ivory text (`sidebar-*` tokens) and a 2px champagne active marker. Content stays light.
+> - Shadows are warm, `rgba(60,45,15,0.08)`. No gradients, glows or textures.
+
 ### Neutrals (warm paper & ink)
 
 | Token              | Hex       | Use                                  |
@@ -128,7 +138,7 @@ Headline letter-spacing: −0.01em. Never bold the serif above 600.
 - **Target:** desktop 1440 × 900 (screen-shared demo). Light mode only.
 - **Sidebar** 248px, `--sidebar` background, right hairline.
   - Top: wordmark **Medisense** (Newsreader 20, ink-900) + small caption _"Clinical Operations"_.
-  - Organisation switcher below: **Kestrel Allied Health** · _Melbourne (2 sites)_.
+  - Organisation switcher below: **Medisense** · _Brisbane, QLD · home visits & telehealth_.
   - Nav groups (eyebrow labels):
     - **Organisation** — Overview · Team Capacity · Clients Requiring Attention
     - **Clinical** — Caseloads · Supervision · My Day

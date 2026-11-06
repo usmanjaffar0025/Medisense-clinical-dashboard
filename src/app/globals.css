@@ -10,47 +10,69 @@
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  --color-canvas: #f5f1ea;
-  --color-sidebar: #efeae1;
-  --color-surface: #fcfaf6;
+  /* Pearl & Champagne. */
+  --color-canvas: #f5f3ee;
+  --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-surface-sunken: #eee9e0;
-  --color-border: #e2dbcf;
-  --color-border-strong: #cfc6b7;
+  --color-surface-sunken: #faf8f3;
+  --color-border: rgb(23 21 15 / 0.08);
+  --color-border-strong: rgb(23 21 15 / 0.16);
+  --color-grid: rgb(23 21 15 / 0.06);
 
-  --color-ink-900: #1e1c19;
-  --color-ink-700: #4a453e;
-  --color-ink-500: #7a7368;
-  --color-ink-400: #a39c90;
+  --color-ink-900: #17150f;
+  --color-ink-700: #5e5b54;
+  --color-ink-500: #8c8981;
+  --color-ink-400: #b3afa6;
 
-  --color-accent: #2e5a4c;
-  --color-accent-hover: #244a3e;
-  --color-accent-pressed: #1c3b31;
-  --color-accent-tint: #e3ece6;
+  /* Obsidian navigation rail with ivory text. */
+  --color-sidebar: #0a0b0d;
+  --color-sidebar-ink: #f5f3ee;
+  --color-sidebar-muted: rgb(245 243 238 / 0.62);
+  --color-sidebar-faint: rgb(245 243 238 / 0.42);
+  --color-sidebar-hover: rgb(245 243 238 / 0.06);
+  --color-sidebar-border: rgb(245 243 238 / 0.1);
 
-  --color-healthy: #3d6e4f;
-  --color-healthy-bg: #e5efe6;
-  --color-healthy-dot: #5a8f6a;
-  --color-monitor: #8a5a12;
-  --color-monitor-bg: #f5e9d2;
-  --color-monitor-dot: #c08a2e;
-  --color-over: #9c3b26;
-  --color-over-bg: #f4e0d8;
-  --color-over-dot: #c0563c;
-  --color-available: #3e5670;
-  --color-available-bg: #e3e9ef;
-  --color-available-dot: #6e8296;
+  /* Bronze is the text accent (links, key figures, lines); champagne is the fill. */
+  --color-accent: #8a6a2b;
+  --color-accent-hover: #6f5521;
+  --color-accent-tint: rgb(201 169 106 / 0.16);
+  --color-accent-fill: #c9a96a;
+  --color-accent-fill-hover: #d6b97e;
+  --color-accent-fill-pressed: #b39454;
+  --color-on-accent: #14110a;
 
-  --color-draft: #f8f3e6;
-  --color-draft-rule: #c9b98f;
-  --color-brass: #9c8452;
+  --color-healthy: #2e8b63;
+  --color-healthy-bg: rgb(46 139 99 / 0.1);
+  --color-healthy-dot: #2e8b63;
+  --color-monitor: #a8680f;
+  --color-monitor-bg: rgb(168 104 15 / 0.1);
+  --color-monitor-dot: #a8680f;
+  --color-over: #c4432f;
+  --color-over-bg: rgb(196 67 47 / 0.1);
+  --color-over-dot: #c4432f;
+  --color-available: #2f6db5;
+  --color-available-bg: rgb(47 109 181 / 0.1);
+  --color-available-dot: #2f6db5;
 
-  --color-chart-evergreen: #2e5a4c;
-  --color-chart-sage: #8fae9c;
-  --color-chart-sand: #cdbf9f;
-  --color-chart-slate: #6e8296;
-  --color-chart-stone: #a39c90;
-  --color-chart-clay: #c0563c;
+  --color-draft: #fbf7ee;
+  --color-draft-rule: #c9a96a;
+  --color-brass: #8a6a2b;
+
+  --color-chart-evergreen: #b8934a;
+  --color-chart-sage: #4a8a84;
+  --color-chart-sand: #d8c7a0;
+  --color-chart-slate: #5a7094;
+  --color-chart-stone: #8c8478;
+  --color-chart-clay: #c4432f;
+
+  /*
+   * Categorical order for multi-series charts, arranged so neighbouring series stay
+   * distinguishable under colour-vision deficiency (checked with the palette validator).
+   */
+  --color-series-1: #4a8a84;
+  --color-series-2: #b8934a;
+  --color-series-3: #5a7094;
+  --color-series-4: #8c8478;
 
   --font-serif: var(--font-newsreader), Georgia, serif;
   --font-sans: var(--font-instrument-sans), system-ui, sans-serif;
@@ -94,15 +116,14 @@
   --radius-card: 10px;
   --radius-sheet: 14px;
 
-  --shadow-overlay: 0 1px 2px rgb(30 28 25 / 0.06), 0 12px 32px rgb(30 28 25 / 0.1);
-  --shadow-focus: 0 0 0 3px rgb(46 90 76 / 0.28);
-  --shadow-flag: inset 0 2px 0 #c08a2e;
-  --shadow-rule-over: inset 2px 0 0 #c0563c;
-  --shadow-rule-accent: inset 2px 0 0 #2e5a4c;
-  --shadow-hairline: 0 0 0 1px #e2dbcf;
-  --shadow-underline-accent: inset 0 -1px 0 #2e5a4c;
+  --shadow-overlay: 0 1px 2px rgb(60 45 15 / 0.06), 0 12px 32px rgb(60 45 15 / 0.08);
+  --shadow-focus: 0 0 0 3px rgb(201 169 106 / 0.45);
+  --shadow-flag: inset 0 2px 0 #a8680f;
+  --shadow-rule-over: inset 2px 0 0 #c4432f;
+  --shadow-rule-accent: inset 2px 0 0 #c9a96a;
+  --shadow-hairline: 0 0 0 1px rgb(23 21 15 / 0.08);
+  --shadow-underline-accent: inset 0 -1px 0 #8a6a2b;
 
-  --container-content: 1280px;
   --spacing-sidebar: 248px;
 }
 

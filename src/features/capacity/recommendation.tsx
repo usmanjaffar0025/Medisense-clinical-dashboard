@@ -1,10 +1,11 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { PenNib } from "@/components/ai/provenance";
 import { Button } from "@/components/ui/button";
 import { Caption, Card } from "@/components/ui/card";
-import { capacityRecommendation } from "@/data/clinicians";
+import { capacityRecommendation, rebalanceScenario } from "@/data/capacity";
 import { useDemoStore } from "@/state/demo-store";
 
 function Side({
@@ -31,11 +32,18 @@ function Side({
   );
 }
 
-export function Recommendation() {
+export function Recommendation({
+  previewing,
+  onTogglePreview,
+}: {
+  previewing: boolean;
+  onTogglePreview: () => void;
+}) {
   const state = useDemoStore((s) => s.recommendation);
   const review = useDemoStore((s) => s.reviewRecommendation);
   const dismiss = useDemoStore((s) => s.dismissRecommendation);
-  const { from, to } = capacityRecommendation;
+  const { from, to, continuity } = capacityRecommendation;
+  const { sarah, emma } = rebalanceScenario;
 
   return (
     <Card
@@ -72,6 +80,31 @@ export function Recommendation() {
         <Side {...to} tone="available" />
       </div>
 
+      <div className="rounded-control border border-border bg-surface-sunken px-3.5 py-3">
+        <div className="mb-1.5 eyebrow">Continuity of care</div>
+        <ul className="flex list-disc flex-col gap-1 pl-4 text-small text-ink-700">
+          {continuity.map((c) => (
+            <li key={c}>{c}</li>
+          ))}
+        </ul>
+      </div>
+
+      <Button variant="secondary" onClick={onTogglePreview} aria-pressed={previewing}>
+        {previewing ? (
+          <EyeOff className="size-4" strokeWidth={1.5} aria-hidden="true" />
+        ) : (
+          <Eye className="size-4" strokeWidth={1.5} aria-hidden="true" />
+        )}
+        {previewing ? "Hide scenario preview" : "Preview scenario"}
+      </Button>
+      {previewing && (
+        <p className="rounded-control bg-accent-tint px-3.5 py-2.5 text-small text-accent">
+          Preview only: moving {rebalanceScenario.moved} newer clients would take Sarah from{" "}
+          {sarah.before.utilisation}% to {sarah.after.utilisation}% and Emma from{" "}
+          {emma.before.utilisation}% to {emma.after.utilisation}%. Nothing has changed.
+        </p>
+      )}
+
       {state === "pending" && (
         <div className="flex flex-wrap gap-2">
           <Button variant="primary" onClick={review}>
@@ -90,7 +123,7 @@ export function Recommendation() {
           <span className="text-small font-semibold text-healthy">
             Sent to Grace Liu for review · Logged to audit trail
           </span>
-          <Link href="/#impact" className="text-small font-semibold">
+          <Link href="/" className="text-small font-semibold">
             Return to overview
           </Link>
         </div>

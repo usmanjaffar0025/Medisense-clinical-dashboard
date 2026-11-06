@@ -1,20 +1,22 @@
 import { Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageContainer, PageHeader } from "@/components/ui/page";
-import { currentUser, organisation, organisationKpis, pilotImpact } from "@/data/organisation";
-import { AttentionPanel } from "@/features/overview/attention-panel";
-import { CaseloadHealth } from "@/features/overview/caseload-health";
+import { clinicians } from "@/data/clinicians";
+import { currentUser, organisation, projectedImpact } from "@/data/organisation";
 import { ImpactBand } from "@/features/overview/impact-band";
-import { KpiGrid } from "@/features/overview/kpi-grid";
+import { OverviewDashboard } from "@/features/overview/overview-dashboard";
 
 export default function OverviewPage() {
+  const activeClients = clinicians.reduce((sum, c) => sum + c.active, 0);
+  const atRisk = clinicians.filter((c) => c.status === "at-risk").length;
+
   return (
     <PageContainer>
       <PageHeader
         display
         eyebrow={organisation.today}
         title={`Good morning, ${currentUser.firstName}.`}
-        description={`${organisation.name} · 10 clinicians · ${organisation.activeClients} active clients. One clinician is above configured capacity.`}
+        description={`${organisation.name} · ${clinicians.length} clinicians · ${activeClients} active clients. ${atRisk === 1 ? "One clinician is" : `${atRisk} clinicians are`} above configured capacity.`}
         actions={
           <>
             <Button>
@@ -29,14 +31,8 @@ export default function OverviewPage() {
         }
       />
 
-      <KpiGrid kpis={organisationKpis} label="Organisation indicators" />
-
-      <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_304px]">
-        <CaseloadHealth />
-        <AttentionPanel />
-      </div>
-
-      <ImpactBand measures={pilotImpact} />
+      <OverviewDashboard />
+      <ImpactBand measures={projectedImpact} />
     </PageContainer>
   );
 }

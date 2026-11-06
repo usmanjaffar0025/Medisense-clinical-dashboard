@@ -6,13 +6,13 @@ export function ScoreBreakdown({
   thresholds,
 }: {
   factors: ScoreFactor[];
-  thresholds: { monitor: number; over: number };
+  thresholds: { monitor: number; atRisk: number };
 }) {
   const total = factors.reduce((sum, f) => sum + f.points, 0);
   const max = factors.reduce((sum, f) => sum + f.max, 0);
 
   return (
-    <Card aria-labelledby="why-score" className="flex flex-col px-6 pt-5 pb-4.5">
+    <Card aria-labelledby="why-score" className="flex h-full flex-col px-6 pt-5 pb-4.5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 id="why-score" className="headline text-h2">
@@ -52,8 +52,11 @@ export function ScoreBreakdown({
       <div className="mt-4.5">
         <div className="flex h-2 overflow-hidden rounded-full" aria-hidden="true">
           <span className="bg-healthy-bg" style={{ flex: thresholds.monitor }} />
-          <span className="bg-monitor-bg" style={{ flex: thresholds.over - thresholds.monitor }} />
-          <span className="bg-over-bg" style={{ flex: max - thresholds.over }} />
+          <span
+            className="bg-monitor-bg"
+            style={{ flex: thresholds.atRisk - thresholds.monitor }}
+          />
+          <span className="bg-over-bg" style={{ flex: max - thresholds.atRisk }} />
         </div>
         <div className="relative h-0" aria-hidden="true">
           <span
@@ -64,9 +67,9 @@ export function ScoreBreakdown({
         <div className="mt-2 flex justify-between text-caption font-medium text-ink-500">
           <span>Healthy &lt;{thresholds.monitor}</span>
           <span>
-            Monitor {thresholds.monitor}–{thresholds.over - 1}
+            Monitor {thresholds.monitor}–{thresholds.atRisk - 1}
           </span>
-          <span className="text-over">Over Capacity ≥{thresholds.over}</span>
+          <span className="text-over">At Risk ≥{thresholds.atRisk}</span>
         </div>
       </div>
 

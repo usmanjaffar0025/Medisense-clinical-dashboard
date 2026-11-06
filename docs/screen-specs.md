@@ -2,6 +2,19 @@
 
 All screens use the shell, tokens and components in `design-system.md` and the exact data in `demo-dataset.md`. Canvas 1440 × 900, light mode. Grid: 12 columns, 24px gutters, content max 1280.
 
+> **Revision 2 (after the second meeting).** Where this file and the list below disagree, the list wins:
+>
+> - Status scale is **Healthy / Monitor / At Risk** everywhere (replaces At Risk). Attention priorities are **High / Medium / Review** (replaces Low).
+> - Data: 12 clinicians (OT and Speech Pathology), 184 clients, NDIS and aged care funding on every client row. See `demo-dataset.md`.
+> - **Overview:** filter bar (Site · Discipline · Trend period) scoping KPIs, four trend cards with sparklines (admin backlog, caseload pressure, follow-up risk, supervision completion), caseload health with a score-trend column, then charts: active clients against capacity, client mix (funding donut and complexity bar), caseload pressure by clinician, admin backlog by clinician. The impact band shows **projected** impact, not pilot results.
+> - **Caseload:** workload chart with 6/12-week toggle and admin hours bars; complexity, funding and continuity-of-care charts; client table gains Funding and "With Sarah" columns, a funding filter and sorting.
+> - **Case note:** raw note is editable (type or paste); four draft sections (Session Summary, Interventions, Progress / Observations, Next Actions); live Claude generation with a prepared fallback and an AI status tag in the header.
+> - **Clients requiring attention:** clickable charts by reason, clinician and days since contact filter the table; follow-up form has owner, due date, reason and note.
+> - **Supervision:** the agenda becomes a five-heading **supervision brief**; protected time card with the last three sessions and team outcomes by cycle; progress against three development goals; team sessions in the next 14 days.
+> - **Team capacity:** site and discipline filters; utilisation chart with **scenario preview** (never applied); free complexity-weighted capacity chart; places by site; caseload balance table; transfer candidates chosen for continuity of care. Emma is an OT in Brisbane North.
+> - **Admin insights:** clickable time donut, 12-week non-clinical hours by category, documentation hours against each clinician's pro-rata target.
+> - Demo story is six steps and ends on Team Capacity.
+
 Screen order follows the demo story:
 1 Leadership Overview → 2 Sarah's Caseload → 3 Case Note Summariser → 4 Clients Requiring Attention → 5 Supervision → 6 Team Capacity → 7 Admin Insights → 8 Progress Report Generator → 9 My Day (Clinician Home).
 
@@ -16,7 +29,7 @@ Screen order follows the demo story:
 
 - Eyebrow: `TUESDAY 20 OCTOBER 2026`
 - Display title (Newsreader): **"Good morning, Neil."**
-- Sub: _"Kestrel Allied Health · 10 clinicians · 201 active clients. One clinician is above configured capacity."_
+- Sub: _"Medisense · 10 clinicians · 201 active clients. One clinician is above configured capacity."_
 - Actions: `Weekly summary` (secondary), `Export` (ghost).
 
 **Row 1: KPI strip.** 8 KPI tiles in 2 rows of 4 (cols 3/12 each). Values and captions from Dataset §1. Highlight only _Clinicians Near Capacity_ and _Clients Requiring Attention_ with a 2px top rule in ochre. No icons.
@@ -26,7 +39,7 @@ Screen order follows the demo story:
 - Title (h2 serif): _Caseload Health_. Sub: _"Scored from configured operational indicators: capacity, complexity, documentation, follow-ups, supervision and admin load."_
 - Columns: Clinician (name + role), Active / Capacity, Capacity meter, Complexity, Notes overdue, Follow-ups, Supervision, Score, Status tag.
 - Sorted by score descending, so **Sarah Thompson is row 1** with an `--accent-tint`-free but subtle clay-tinted left rule. Row click goes to Screen 2.
-- Filter chips above: All (10) · Over Capacity (1) · Monitor (2) · Healthy (7).
+- Filter chips above: All (10) · At Risk (1) · Monitor (2) · Healthy (7).
 
 **Row 2 (4 cols): "Needs your attention" panel.**
 
@@ -50,12 +63,12 @@ Screen order follows the demo story:
 **Header**
 
 - Breadcrumb: Caseloads / Sarah Thompson.
-- Left: initials avatar "ST" (sand bg) · h1 **Sarah Thompson** · _Occupational Therapist · Richmond · 1.0 FTE · Supervisor: Grace Liu_.
-- Right: Status tag **Over Capacity** + score "83" in Newsreader 28 · buttons `Prepare supervision` (primary), `View in Team Capacity` (secondary).
+- Left: initials avatar "ST" (sand bg) · h1 **Sarah Thompson** · _Occupational Therapist · Brisbane North · 1.0 FTE · Supervisor: Grace Liu_.
+- Right: Status tag **At Risk** + score "83" in Newsreader 28 · buttons `Prepare supervision` (primary), `View in Team Capacity` (secondary).
 
 **Row 1: Metrics strip (12 cols).** 8 compact metric cells in a single hairline-divided band (not separate cards): Active clients 27 · Recommended capacity 25 · High-complexity 6 · Notes overdue 4 · Follow-ups due 5 · Supervision due _2 days_ · Clinical hrs/wk 29 · Admin hrs/wk 9 (_target 7_, ochre).
 
-**Row 2 left (5 cols): "Why this score"** score breakdown card (Dataset §3, Sarah column): six factor rows with contribution bars, total 83 / 100, threshold legend (Healthy < 60 · Monitor 60–79 · Over Capacity ≥ 80), footnote on operational indicators.
+**Row 2 left (5 cols): "Why this score"** score breakdown card (Dataset §3, Sarah column): six factor rows with contribution bars, total 83 / 100, threshold legend (Healthy < 60 · Monitor 60–79 · At Risk ≥ 80), footnote on operational indicators.
 
 **Row 2 right (7 cols): "Workload, last 6 weeks"** line chart: weighted caseload (evergreen) with capacity line (dashed) at 25 clients ≈ 37.5 units, and admin hours as a small secondary bar chart below with a 7h target line. Direct label "+18%" on the last point.
 
@@ -119,7 +132,7 @@ Screen order follows the demo story:
 **Nav:** Clinical / Supervision / Sarah Thompson · **Role:** Supervisor (Grace Liu)
 **Job:** Supervision that's structured, evidence-informed and prepared in seconds.
 
-**Header:** eyebrow `SUPERVISION · NEXT SESSION IN 2 DAYS` · h1 **Sarah Thompson** · sub _Thu 22 Oct 2026, 2:00 pm · 60 min · Richmond, Room 3 · with Grace Liu_. Actions: `Start session notes` (primary), `Share agenda with Sarah` (secondary).
+**Header:** eyebrow `SUPERVISION · NEXT SESSION IN 2 DAYS` · h1 **Sarah Thompson** · sub _Thu 22 Oct 2026, 2:00 pm · 60 min · Video call · with Grace Liu_. Actions: `Start session notes` (primary), `Share agenda with Sarah` (secondary).
 
 **Row 1: facts band.** Last supervision Thu 24 Sep · Next Thu 22 Oct · Frequency Every 4 weeks · Cases flagged 4 · Open actions 2 of 4 · Development goals 2.
 
@@ -140,7 +153,7 @@ Screen order follows the demo story:
 **Nav:** Organisation / Team Capacity
 **Job:** Show where capacity exists and where load is unsustainable. **Recommend, never reassign.**
 
-**Header:** h1 **Team capacity** · sub _"Utilisation against configured capacity, weighted by client complexity."_ · right: segmented control `All sites · Richmond · Box Hill`.
+**Header:** h1 **Team capacity** · sub _"Utilisation against configured capacity, weighted by client complexity."_ · right: segmented control `All sites · Brisbane North · Brisbane South`.
 
 **Row 1 (12 cols): Capacity chart.** Horizontal bar per clinician (10), sorted by utilisation; bar = utilisation %, a dashed vertical line at 100%, overflow beyond 100% in clay, values labelled at bar end ("108%"). Sarah top, Emma highlighted in slate as _Available_.
 

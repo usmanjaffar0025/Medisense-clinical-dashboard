@@ -8,19 +8,34 @@ import { Caption, Card, CardTitle } from "@/components/ui/card";
 import { LevelDot } from "@/components/ui/dot";
 import { FilterChips } from "@/components/ui/filter-chips";
 import { SearchField } from "@/components/ui/search-field";
+import { Segmented, SelectField } from "@/components/ui/segmented";
 import { TableHeader, TableRow } from "@/components/ui/table";
 import { Tag, priorityTone } from "@/components/ui/tag";
+import { tenureLabel } from "@/data/caseload";
 import type {
   AttentionStatus,
   CaseloadClient,
   ClientFilter,
+  Complexity,
   DocumentationStatus,
+  Funding,
 } from "@/data/types";
 
 const COLUMNS =
-  "minmax(130px,1.2fr) minmax(160px,1.6fr) 84px 128px 96px minmax(150px,1.3fr) minmax(160px,1.3fr)";
+  "minmax(130px,1.2fr) minmax(160px,1.6fr) 84px 76px 84px 128px 96px minmax(150px,1.3fr) minmax(160px,1.3fr)";
 
 type Filter = "all" | ClientFilter;
+type Sort = "attention" | "name" | "complexity" | "tenure-asc" | "tenure-desc";
+
+const complexityRank: Record<Complexity, number> = { High: 0, Medium: 1, Low: 2 };
+
+const sorters: Record<Sort, (a: CaseloadClient, b: CaseloadClient) => number> = {
+  attention: () => 0,
+  name: (a, b) => a.name.localeCompare(b.name),
+  complexity: (a, b) => complexityRank[a.complexity] - complexityRank[b.complexity],
+  "tenure-asc": (a, b) => a.tenureMonths - b.tenureMonths,
+  "tenure-desc": (a, b) => b.tenureMonths - a.tenureMonths,
+};
 
 function NextAppointment({ value }: { value: CaseloadClient["nextAppointment"] }) {
   switch (value.kind) {
@@ -40,7 +55,13 @@ function Documentation({ value, href }: { value: DocumentationStatus; href?: str
     case "complete":
       return <span className="text-ink-500">Complete</span>;
     case "overdue":
-      return <span className="font-medium text-monitor">Note overdue · {value.days} days</span>;
+      return href ? (
+        <Link href={href} className="font-medium text-monitor underline-offset-2 hover:underline">
+          Note overdue · {value.days} days
+        </Link>
+      ) : (
+        <span className="font-medium text-monitor">Note overdue · {value.days} days</span>
+      );
     case "report-incomplete":
       return <span className="font-medium text-monitor">Progress report incomplete</span>;
     case "ai-draft": {
@@ -79,11 +100,15 @@ function Attention({ value }: { value: AttentionStatus }) {
 export function ClientTable({ clients }: { clients: CaseloadClient[] }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const [funding, setFunding] = useState<"all" | Funding>("all");
+  const [sort, setSort] = useState<Sort>("attention");
 
   const count = (f: ClientFilter) => clients.filter((c) => c.filters.includes(f)).length;
   const rows = clients
     .filter((c) => filter === "all" || c.filters.includes(filter))
-    .filter((c) => c.name.toLowerCase().includes(query.trim().toLowerCase()));
+    .filter((c) => funding === "all" || c.funding === funding)
+    .filter((c) => c.name.toLowerCase().includes(query.trim().toLowerCase()))
+    .sort(sorters[sort]);
 
   return (
     <Card aria-labelledby="client-list" className="col-span-12 overflow-hidden">
@@ -92,7 +117,7 @@ export function ClientTable({ clients }: { clients: CaseloadClient[] }) {
           id="client-list"
           className="items-end"
           title="Clients"
-          description={`${clients.length} active · sorted by attention, then next appointment`}
+          description={`${clients.length} active · ${clients.filter((c) => c.funding === "NDIS").length} NDIS · ${clients.filter((c) => c.funding === "Aged care").length} aged care`}
           aside={
             <SearchField
               label="Search Sarah’s clients"
@@ -114,6 +139,28 @@ export function ClientTable({ clients }: { clients: CaseloadClient[] }) {
             { id: "high-complexity", label: "High complexity", count: count("high-complexity") },
           ]}
         />
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="flex items-center gap-2">
+            <Caption>Funding</Caption>
+            <Segmented
+              label="Funding"
+              value={funding}
+              onChange={setFunding}
+              options={[
+                { id: "all", label: "All" },
+                { id: "NDIS", label: "NDIS" },
+                { id: "Aged care", label: "Aged care" },
+              ]}
+            />
+          </div>
+          <SelectField label="Sort by" value={sort} onChange={(v) => setSort(v as Sort)}>
+            <option value="attention">Attention, then next appointment</option>
+            <option value="name">Client name</option>
+            <option value="complexity">Complexity, highest first</option>
+            <option value="tenure-asc">Time with Sarah, newest first</option>
+            <option value="tenure-desc">Time with Sarah, longest first</option>
+          </SelectField>
+        </div>
       </div>
 
       <div
@@ -121,10 +168,12 @@ export function ClientTable({ clients }: { clients: CaseloadClient[] }) {
         role="table"
         aria-label="Sarah Thompson’s clients"
       >
-        <div className="min-w-250">
+        <div className="min-w-280">
           <TableHeader columns={COLUMNS} className="sticky top-0 z-1">
             <div>Client</div>
             <div>Service</div>
+            <div>Funding</div>
+            <div>With Sarah</div>
             <div>Last session</div>
             <div>Next appointment</div>
             <div>Complexity</div>
@@ -138,6 +187,12 @@ export function ClientTable({ clients }: { clients: CaseloadClient[] }) {
                 <div className="text-caption text-ink-500">{c.age} yrs</div>
               </div>
               <div className="text-ink-700">{c.service}</div>
+              <div>
+                <Tag tone={c.funding === "NDIS" ? "live" : "neutral"}>{c.funding}</Tag>
+              </div>
+              <div className={c.tenureMonths < 3 ? "font-medium text-available" : "text-ink-700"}>
+                {tenureLabel(c.tenureMonths)}
+              </div>
               <div>{c.lastSession}</div>
               <div>
                 <NextAppointment value={c.nextAppointment} />

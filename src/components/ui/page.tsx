@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export function PageContainer({ children }: { children: ReactNode }) {
-  return <main className="mx-auto w-full max-w-content px-10 pt-8 pb-18">{children}</main>;
+  return <main className="w-full px-10 pt-8 pb-18">{children}</main>;
 }
 
 export function PageHeader({

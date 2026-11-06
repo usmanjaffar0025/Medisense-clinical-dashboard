@@ -1,13 +1,17 @@
+import { wd } from "@/lib/clock";
 import { ArrowRight, ChevronRight, UserCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Fragment } from "react";
 import { PenNib } from "@/components/ai/provenance";
+import { RoleLink } from "@/components/shell/role-link";
 import { Button } from "@/components/ui/button";
 import { Caption, Card } from "@/components/ui/card";
 import { PageContainer, PageHeader } from "@/components/ui/page";
+import { clientProfileById } from "@/data/client-profiles";
 import { hannahDay, type Appointment } from "@/data/my-day";
 import { organisation } from "@/data/organisation";
+import { MyTasks, MyWeek } from "@/features/my-day/my-week";
 import { WaitingForYou } from "@/features/my-day/waiting-for-you";
 import { cn } from "@/lib/cn";
 
@@ -24,6 +28,7 @@ const rowState: Record<Appointment["state"], string> = {
 };
 
 function AppointmentRow({ appointment: a }: { appointment: Appointment }) {
+  const profileId = clientProfileById(a.client.toLowerCase().replace(" ", "-"))?.id;
   return (
     <div
       className={cn(
@@ -41,7 +46,16 @@ function AppointmentRow({ appointment: a }: { appointment: Appointment }) {
         {a.time}
       </span>
       <div>
-        <div className="font-semibold text-ink-900">{a.client}</div>
+        {profileId ? (
+          <Link
+            href={`/clients/${profileId}`}
+            className="font-semibold text-ink-900 hover:text-accent"
+          >
+            {a.client}
+          </Link>
+        ) : (
+          <div className="font-semibold text-ink-900">{a.client}</div>
+        )}
         <div className={cn("text-small", a.state === "past" ? "text-ink-500" : "text-ink-700")}>
           {a.detail}
         </div>
@@ -69,9 +83,9 @@ export default function MyDayPage() {
           Viewing as Clinician · <b className="font-semibold text-ink-900">{hannahDay.name}</b> ·
           own caseload only
         </span>
-        <Link href="/" className="font-semibold">
+        <RoleLink role="Leadership" href="/">
           Return to Leadership view
-        </Link>
+        </RoleLink>
       </div>
 
       <PageContainer>
@@ -95,7 +109,8 @@ export default function MyDayPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-b-card border border-t-0 border-border bg-surface-sunken px-6 py-3">
             <span className="flex items-center gap-2 text-small">
               <UserCheck className="size-4 text-ink-500" strokeWidth={1.5} aria-hidden="true" />
-              <b className="font-semibold">Supervision Thursday</b> · {hannahDay.supervision}
+              <b className="font-semibold">Supervision {wd("Thursday")}</b> ·{" "}
+              {hannahDay.supervision}
             </span>
             <Button variant="ghost" size="sm">
               Prepare my supervision
@@ -103,6 +118,8 @@ export default function MyDayPage() {
             </Button>
           </div>
         </section>
+
+        <MyWeek />
 
         <div className="mt-8 grid items-start gap-6 lg:grid-cols-12">
           <Card aria-labelledby="today" className="overflow-hidden lg:col-span-7">
@@ -117,7 +134,7 @@ export default function MyDayPage() {
                 <AppointmentRow appointment={a} />
                 {a.state === "current" && (
                   <div className="relative h-0" aria-label={hannahDay.nowLabel}>
-                    <span className="absolute -top-2.5 left-5 z-1 h-5 rounded-tag bg-accent px-2 text-eyebrow leading-5 font-semibold text-white">
+                    <span className="absolute -top-2.5 left-5 z-1 h-5 rounded-tag bg-accent-fill px-2 text-eyebrow leading-5 font-semibold text-on-accent">
                       {hannahDay.nowLabel}
                     </span>
                     <span className="absolute top-0 right-5 left-5 border-t border-accent" />
@@ -164,6 +181,7 @@ export default function MyDayPage() {
             </Card>
 
             <WaitingForYou />
+            <MyTasks />
           </div>
         </div>
       </PageContainer>

@@ -5,6 +5,7 @@ const levelColours: Record<Complexity | Priority, string> = {
   High: "bg-over-dot",
   Medium: "bg-monitor-dot",
   Low: "bg-ink-400",
+  Review: "bg-ink-400",
 };
 
 export function LevelDot({
