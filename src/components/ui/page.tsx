@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export function PageContainer({ children }: { children: ReactNode }) {
-  return <main className="w-full px-10 pt-8 pb-18">{children}</main>;
+  return <main className="w-full px-4 pt-6 pb-18 md:px-6 md:pt-8 xl:px-10">{children}</main>;
 }
 
 export function PageHeader({
@@ -25,7 +25,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "mb-8 flex flex-wrap justify-between gap-4 border-b border-border pb-6",
+        "page-hero mb-8 flex flex-wrap justify-between gap-4 border-b border-border pb-6",
         align === "end" ? "items-end" : "items-center",
       )}
     >
@@ -42,6 +42,29 @@ export function PageHeader({
             </p>
           )}
         </div>
+      </div>
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+    </header>
+  );
+}
+
+/** A page title without an eyebrow, for screens built around one clear focal point. */
+export function ScreenTitle({
+  title,
+  description,
+  actions,
+  display = false,
+}: {
+  title: ReactNode;
+  description?: ReactNode;
+  actions?: ReactNode;
+  display?: boolean;
+}) {
+  return (
+    <header className="page-hero mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div className="max-w-180">
+        <h1 className={cn("headline", display ? "text-display" : "text-h1")}>{title}</h1>
+        {description && <div className="mt-1.5 text-body text-ink-700">{description}</div>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>

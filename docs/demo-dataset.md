@@ -360,3 +360,15 @@ Source of truth: `src/data/analytics.ts`, `src/data/portal.ts`, `src/data/settin
 - **Analytics:** 12-week series: sessions 152 → 171 per week, cancellations ≈15 per week, billable hours NDIS 118 → 131 and aged care 41 → 47, notes approved within 2 days 71% → 64%, referral to first visit 16 → 19 days, goals on track OT 64% → 68% and Speech 70% → 72%. 428 active goals (62 achieved, 141 on track, 187 progressing, 38 at risk). Counts scale with the filtered team's share of active clients; the clinician table uses this week's schedule.
 - **Family portal:** Emily Carter's parent Rachel. Next visit Tue 27 Oct 8:30 am; four home-program items; three goals in plain language; the progress report stays locked until Hannah approves it on the report screen. A message creates a reply task for Hannah (shown on My Day); a change request creates a scheduling task for the admin team.
 - **Security & integrations:** 10 permissions × 4 roles (approving AI drafts and own caseload are locked), six AI guardrails (approval, no contact with families and no training are locked on), six generic integrations (practice management system, email & calendar, website referral form connected; SMS, NDIS claims export, accounting available). Security facts describe the proposed setup.
+
+## Connected story additions
+
+Fictional details added for the connected story (see `src/data/story.ts`):
+
+- **People:** Jo Marsh and Sam Doyle (admin team), Claire Grant (Oliver's mother).
+- **Oliver Grant:** a home visit today, 9:30 to 10:15 am, Kedron. Date of birth 12/03/2020, NDIS number 430 118 276. The dataset's 15 Oct overdue note is treated as this note, so Sarah's "Notes to write" goes from 4 to 3 on approval.
+- **Sarah's day:** Henry Ng, Oliver Grant, Isla Murphy, Zara Ahmed and Ava Mitchell, about 50 minutes of driving.
+- **Follow-ups with no owner:** 5 across the team, 2 of them Sarah's.
+- **Score rule:** 3 points per overdue note on Sarah's Overdue documentation factor, so 83 to 80 on approval, still At Risk.
+- **Tasks:** Isla Murphy's call-back is now due Thu 15 Oct, not a Saturday. Admin tasks added for Ruth Hallam and Leila Haddad. Henry Ng's and Sophie Williams's tasks are owned by Jo Marsh.
+- **Form sync exception:** Ava Mitchell's assistive technology request starts with a failed sync.

@@ -1,8 +1,6 @@
 import { dt } from "@/lib/clock";
-import { FilePlus, Share } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Caption, Card } from "@/components/ui/card";
 import { MetricBand } from "@/components/ui/metric-band";
 import { PageContainer, PageHeader } from "@/components/ui/page";
@@ -18,7 +16,7 @@ import {
   upcomingSupervision,
 } from "@/data/supervision";
 import { WorkloadPanel } from "@/features/caseload/workload-panel";
-import { SuggestedAgenda } from "@/features/supervision/agenda";
+import { LiveBrief } from "@/features/supervision/live-brief";
 import { ProtectedTime } from "@/features/supervision/protected-time";
 import { SinceBrief } from "@/features/supervision/since-brief";
 
@@ -34,18 +32,6 @@ export default function SarahSupervisionPage() {
         eyebrow={sarahSupervision.eyebrow}
         title={sarahSupervision.clinician}
         description={sarahSupervision.session}
-        actions={
-          <>
-            <Button>
-              <Share className="size-4" strokeWidth={1.5} aria-hidden="true" />
-              Share brief with Sarah
-            </Button>
-            <Button variant="primary">
-              <FilePlus className="size-4" strokeWidth={1.5} aria-hidden="true" />
-              Start session notes
-            </Button>
-          </>
-        }
       />
 
       <MetricBand
@@ -69,7 +55,7 @@ export default function SarahSupervisionPage() {
 
       <div className="mt-6 grid items-stretch gap-6 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <SuggestedAgenda />
+          <LiveBrief />
         </div>
 
         <div className="flex flex-col gap-6 lg:col-span-5">

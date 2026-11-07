@@ -3,7 +3,10 @@ import { cn } from "@/lib/cn";
 
 export function Card({ className, ...props }: ComponentProps<"section">) {
   return (
-    <section className={cn("rounded-card border border-border bg-surface", className)} {...props} />
+    <section
+      className={cn("rounded-card border border-border bg-surface surface-lift", className)}
+      {...props}
+    />
   );
 }
 

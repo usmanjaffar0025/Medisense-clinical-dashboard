@@ -31,7 +31,7 @@ export function AttentionPanel({
       eyebrow: "Capacity",
       urgent: true,
       title: `${firstAtRisk.name} is above configured capacity.`,
-      detail: `${firstAtRisk.active} of ${firstAtRisk.capacity} · ${firstAtRisk.highComplexity} high-complexity · ${firstAtRisk.notesOverdue} notes overdue`,
+      detail: `${firstAtRisk.active} of ${firstAtRisk.capacity} · ${firstAtRisk.highComplexity} high-complexity · ${firstAtRisk.notesOverdue} notes to write`,
       action: "Review caseload",
       href: "/caseloads/sarah-thompson",
     });
@@ -75,20 +75,22 @@ export function AttentionPanel({
           Needs your attention
         </h2>
       </div>
-      {items.map((item) => (
-        <div
-          key={item.eyebrow}
-          className="flex flex-1 flex-col justify-center gap-1.5 border-t border-border px-5 py-4"
-        >
-          <div className={cn("eyebrow", item.urgent && "text-over")}>{item.eyebrow}</div>
-          <div className="font-semibold">{item.title}</div>
-          <div className="text-small text-ink-700">{item.detail}</div>
-          <ButtonLink href={item.href} className="mt-1.5 self-start">
-            {item.action}
-            <ArrowRight className="size-4" strokeWidth={1.5} aria-hidden="true" />
-          </ButtonLink>
-        </div>
-      ))}
+      <div className="grid gap-px border-t border-border bg-border sm:grid-cols-2 xl:grid-cols-5">
+        {items.map((item) => (
+          <div
+            key={item.eyebrow}
+            className="flex flex-col gap-1.5 bg-surface px-5 py-4 last:sm:col-span-2 last:xl:col-span-1"
+          >
+            <div className={cn("eyebrow", item.urgent && "text-over")}>{item.eyebrow}</div>
+            <div className="font-semibold">{item.title}</div>
+            <div className="mb-2 text-small text-ink-700">{item.detail}</div>
+            <ButtonLink href={item.href} className="mt-auto self-start">
+              {item.action}
+              <ArrowRight className="size-4" strokeWidth={1.5} aria-hidden="true" />
+            </ButtonLink>
+          </div>
+        ))}
+      </div>
       <p className="rounded-b-card border-t border-border bg-surface-sunken px-5 pt-3.5 pb-4 text-caption font-medium text-ink-500">
         Operational indicators only. Not clinical risk assessments.
       </p>

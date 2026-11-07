@@ -51,7 +51,7 @@ const num = (input: Input, key: string) => {
 const matches = (value: string, query: string | undefined) =>
   !query || norm(value).includes(norm(query));
 
-const statusLabel = { healthy: "Healthy", monitor: "Monitor", "at-risk": "At Risk" } as const;
+const statusLabel = { healthy: "Healthy", monitor: "Watch", "at-risk": "At Risk" } as const;
 
 // ---------- lookups ----------
 
@@ -864,11 +864,11 @@ export const toolDefs: ToolDef[] = [
   {
     name: "list_clinicians",
     description:
-      "List the 12 clinicians with capacity and status. Filter by region, discipline or status (At Risk, Monitor, Healthy, available).",
+      "List the 12 clinicians with capacity and status. Filter by region, discipline or status (At Risk, Watch, Healthy, available).",
     properties: {
       region: s("Region", ["Brisbane North", "Brisbane South"]),
       discipline: s("Discipline", ["Occupational Therapy", "Speech Pathology"]),
-      status: s("Status", ["At Risk", "Monitor", "Healthy", "available"]),
+      status: s("Status", ["At Risk", "Watch", "Healthy", "available"]),
     },
     run: listClinicians,
   },

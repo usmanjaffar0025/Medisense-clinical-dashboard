@@ -32,6 +32,8 @@
 
 > **Revision 2: Pearl & Champagne palette.** The values in `src/app/globals.css` replace the hex values in the tables below; the token names and rules are unchanged.
 >
+> **Palettes.** The product has two palettes, Blue (the default) and Green, chosen from the top bar. Their values are in `src/app/globals.css`, using Fraunces and Manrope. The earlier Pearl & Champagne palette is no longer offered.
+>
 > - Backgrounds: app `#F5F3EE`, surface `#FFFFFF`, elevated/sunken `#FAF8F3`. Borders: hairline `rgba(23,21,15,0.08)`, strong `rgba(23,21,15,0.16)`; chart gridlines `rgba(23,21,15,0.06)`.
 > - Text: primary `#17150F`, secondary `#5E5B54`, tertiary `#8C8981` (non-essential labels only).
 > - Accent: **bronze `#8A6A2B`** for text accents, links, key figures and chart lines (`accent`); **champagne `#C9A96A`** fill for primary buttons and selected markers (`accent-fill`, hover `#D6B97E`, pressed `#B39454`) with `#14110A` text (`on-accent`); subtle fill `rgba(201,169,106,0.16)` (`accent-tint`).

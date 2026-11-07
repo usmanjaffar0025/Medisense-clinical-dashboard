@@ -42,6 +42,6 @@ export function ApprovedLabel({ children, meta }: { children: ReactNode; meta?: 
 /** Parchment surface for AI drafts. Switches to a plain card once approved. */
 export function draftSurface(approved: boolean) {
   return approved
-    ? "rounded-card border border-border bg-surface"
-    : "rounded-card border border-border border-l-2 border-l-draft-rule bg-draft";
+    ? "surface-lift rounded-card border border-border bg-surface"
+    : "ai-surface rounded-card border border-border border-l-2 border-l-draft-rule bg-draft";
 }

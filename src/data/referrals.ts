@@ -1,5 +1,6 @@
 import type { Funding, Site } from "./types";
 import { dt } from "@/lib/clock";
+import type { ReferralExtraction } from "@/lib/story/types";
 
 export type ReferralStatus =
   | "New"
@@ -25,7 +26,7 @@ export type ExtractedField = {
 export type Referral = {
   id: string;
   client: string;
-  age: number;
+  age: number | null;
   funding: Funding;
   services: string;
   region: Site;
@@ -41,6 +42,8 @@ export type Referral = {
   missing: string[];
   duplicate?: { client: string; reason: string };
   suggestedClinician?: string;
+  contactName?: string;
+  contactPhone?: string;
   requestEmail?: string;
 };
 
@@ -411,3 +414,75 @@ export const stageLabels = [
 export function referralById(id: string) {
   return referrals.find((r) => r.id === id);
 }
+
+/** Breaks pasted text into numbered lines, so each extracted detail can point back to its source. */
+export function referralLines(text: string) {
+  return text
+    .split(/\r?\n/)
+    .flatMap((line) => (line.length > 220 ? line.split(/(?<=[.!?])\s+/) : [line]))
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 60);
+}
+
+/** What the seeded referrals show if a live read of them fails. */
+export function seedExtraction(r: Referral): ReferralExtraction {
+  return {
+    client: r.client,
+    age: r.age,
+    funding: r.funding,
+    services: r.services,
+    suburb: r.suburb,
+    contactName: "",
+    contactPhone: "",
+    fields: r.fields,
+    missing: r.missing,
+    requestEmail: r.requestEmail ?? "",
+  };
+}
+
+/** A fictional referral for demonstrating intake without typing one. */
+export const sampleReferralText = `Hello Medisense team,
+Please accept this referral for Theo Marsden, aged 7, who lives in Nundah.
+Theo is an NDIS participant and his plan is self-managed.
+His school has raised concerns about handwriting, attention at the desk and getting ready for the day.
+We are requesting an occupational therapy assessment, preferably at home after school.
+His dad is Paul Marsden, phone 0400 555 217.
+Thanks, Dana Whitfield, Support Coordinator, Northside Supports`;
+
+/** Used only if a live read of the sample above fails, never for text a person typed. */
+export const preparedSampleExtraction: ReferralExtraction = {
+  client: "Theo Marsden",
+  age: 7,
+  funding: "NDIS",
+  services: "Occupational Therapy",
+  suburb: "Nundah",
+  contactName: "Paul Marsden",
+  contactPhone: "0400 555 217",
+  fields: [
+    { label: "Client name", value: "Theo Marsden", line: 2, confidence: "High" },
+    { label: "Age", value: "7", line: 2, confidence: "High" },
+    { label: "Suburb", value: "Nundah", line: 2, confidence: "High" },
+    { label: "Funding", value: "NDIS, self-managed", line: 3, confidence: "High" },
+    {
+      label: "Concerns",
+      value: "Handwriting, attention at the desk, getting ready for the day",
+      line: 4,
+      confidence: "High",
+    },
+    { label: "Service", value: "Occupational therapy assessment", line: 5, confidence: "High" },
+    { label: "Visit preference", value: "At home after school", line: 5, confidence: "High" },
+    { label: "Contact", value: "Paul Marsden (father), 0400 555 217", line: 6, confidence: "High" },
+  ],
+  missing: ["NDIS participant number", "Date of birth", "Plan start and end dates"],
+  requestEmail: `Hi Dana,
+
+Thanks for referring Theo Marsden. Before we book a first visit, could you please send us:
+
+- Theo's NDIS participant number
+- His date of birth
+- His plan start and end dates
+
+Kind regards,
+Medisense intake team`,
+};

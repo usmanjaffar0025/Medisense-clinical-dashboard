@@ -21,12 +21,14 @@ export const currentUser = {
   name: "Neil Hensley",
   firstName: "Neil",
   initials: "NH",
-  role: "Director of Clinical Services",
+  role: "Director",
 } as const;
 
 export type Kpi = {
   label: string;
   value: string;
+  /** The previous value, shown quietly after something changed it. */
+  was?: string;
   caption: string;
   flagged?: boolean;
 };
@@ -53,8 +55,9 @@ function supervisionRate(list: Clinician[]) {
 }
 
 /** Everything the leadership overview shows, for the clinicians in scope. */
-export function summarise(scope: ClinicianScope) {
-  const list = scopedClinicians(scope);
+export function summarise(scope: ClinicianScope, adjust?: (c: Clinician) => Clinician) {
+  const scoped = scopedClinicians(scope);
+  const list = adjust ? scoped.map(adjust) : scoped;
   const names = new Set(list.map((c) => c.name));
   const attention = attentionClients.filter((a) => names.has(a.clinician));
   const active = sum(list, (c) => c.active);
@@ -106,7 +109,7 @@ export function summarise(scope: ClinicianScope) {
     {
       label: "Notes due",
       value: String(overdue + drafts),
-      caption: `${overdue} overdue · ${drafts} AI drafts awaiting approval`,
+      caption: `${overdue} to write · ${drafts} AI drafts awaiting approval`,
     },
     {
       label: "Follow-ups overdue",

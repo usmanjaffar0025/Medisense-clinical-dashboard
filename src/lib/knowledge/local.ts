@@ -221,7 +221,10 @@ const topics = [
   ["notes", /\bnotes?\b|documentation|backlog/],
   ["tasks", /task|follow up|to do|todo|escalat/],
   ["schedule", /schedul|appointment|visit|calendar|slot|driv|travel|route/],
-  ["clinicians", /clinician|therapist|staff|team|capacity|burnout|workload|at risk|overload/],
+  [
+    "clinicians",
+    /clinician|therapist|staff|team|capacity|burnout|workload|at risk|overload|who has room|room for|take on|more clients|new clients|spare/,
+  ],
   ["clients", /client|patient|participant|famil/],
   ["org", /overview|summary|kpi|how (are|is) (we|medisense)|overall|doing|time|admin hours/],
 ] as const;
@@ -318,10 +321,10 @@ function topicCall(
           discipline: f.discipline,
           status: has(q, /at risk|burnout|overload/)
             ? "At Risk"
-            : has(q, /room|availab|capacity for|new client/)
+            : has(q, /room|availab|capacity for|new client|more client|take on|spare/)
               ? "available"
-              : has(q, /monitor/)
-                ? "Monitor"
+              : has(q, /monitor|watch/)
+                ? "Watch"
                 : undefined,
         },
       };

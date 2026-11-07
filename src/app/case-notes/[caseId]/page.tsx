@@ -1,11 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { PageContainer, PageHeader } from "@/components/ui/page";
 import { caseNoteById, caseNotes } from "@/data/case-note";
-import { AiStatus } from "@/features/case-notes/ai-status";
 import { CaseQueue } from "@/features/case-notes/case-queue";
 import { NoteDraft } from "@/features/case-notes/note-draft";
 import { TherapistNotes } from "@/features/case-notes/therapist-notes";
@@ -33,7 +32,9 @@ export default function CaseNotePage({ params }: Params) {
 }
 
 async function CaseNote({ params }: Params) {
-  const sample = caseNoteById((await params).caseId);
+  const id = (await params).caseId;
+  if (id === "oliver-grant") redirect("/sessions/oliver-grant");
+  const sample = caseNoteById(id);
   if (!sample) notFound();
 
   return (
@@ -44,7 +45,6 @@ async function CaseNote({ params }: Params) {
         description={`${sample.age} yrs · ${sample.funding} · ${sample.service} · ${sample.sessionDetail}`}
         actions={
           <div className="flex flex-wrap items-center gap-3">
-            <AiStatus />
             <ButtonLink href="/caseloads/sarah-thompson">
               <ArrowLeft className="size-4" strokeWidth={1.5} aria-hidden="true" />
               Sarah’s caseload

@@ -20,7 +20,7 @@ function Side({
   tone: "over" | "available";
 }) {
   return (
-    <div className="flex flex-1 flex-col gap-0.5 rounded-card border border-border bg-surface px-3.5 py-3">
+    <div className="flex flex-1 flex-col gap-0.5 rounded-card border border-border bg-surface px-3.5 py-3 surface-lift">
       <span className="eyebrow">{name}</span>
       <span className="headline text-stat-sm font-normal">{load}</span>
       <span

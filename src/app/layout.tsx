@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense, type ReactNode } from "react";
-import { IBM_Plex_Mono, Instrument_Sans, Newsreader } from "next/font/google";
+import { Fraunces, IBM_Plex_Mono, Instrument_Sans, Manrope, Newsreader } from "next/font/google";
 import { Sidebar } from "@/components/shell/sidebar";
+import { PresenterPanel } from "@/components/shell/presenter-panel";
+import { TabBar } from "@/components/shell/tab-bar";
 import { TopBar } from "@/components/shell/top-bar";
+import { themeInitScript } from "@/lib/theme";
 import { DemoStoreHydrator } from "@/state/demo-store-hydrator";
 import "./globals.css";
 
@@ -25,6 +28,17 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
 });
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  axes: ["opsz", "SOFT"],
+  variable: "--font-fraunces",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+});
+
 export const metadata: Metadata = {
   title: "Medisense · Clinical Operations & Supervision",
   description:
@@ -44,19 +58,26 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html
       lang="en-AU"
-      className={`${newsreader.variable} ${instrumentSans.variable} ${plexMono.variable}`}
+      data-theme="clear-blue"
+      suppressHydrationWarning
+      className={`${newsreader.variable} ${instrumentSans.variable} ${plexMono.variable} ${fraunces.variable} ${manrope.variable}`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
         <DemoStoreHydrator />
-        <Suspense fallback={<div className="min-h-screen bg-canvas" />}>
+        <Suspense fallback={<div className="min-h-screen bg-page" />}>
           <Today>
-            <div className="flex min-h-screen bg-canvas">
+            <div className="flex min-h-screen bg-page">
               <Sidebar />
               <div className="flex min-w-0 flex-1 flex-col">
                 <TopBar />
-                {children}
+                <div className="min-w-0 flex-1">{children}</div>
+                <TabBar />
               </div>
             </div>
+            <PresenterPanel />
           </Today>
         </Suspense>
       </body>

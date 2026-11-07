@@ -68,7 +68,7 @@ function aiStatus() {
  * Cheapest path first: small talk and repeat questions answer instantly; everything else goes
  * to live AI (records fetched first, one call) or, without a working key, to the local tools.
  */
-async function resolve(question: string): Promise<Resolved> {
+export async function resolveQuestion(question: string): Promise<Resolved> {
   const state = liveState();
   const talk = smallTalk(question, state);
   if (talk) return { answer: talk, engine: "Instant · no AI call", toolCalls: [], notice: null };
@@ -148,7 +148,7 @@ export function AssistantPanel({
   // A question typed in the top bar starts resolving as soon as the panel opens.
   const [initial] = useState(() => {
     const text = initialQuestion.trim();
-    return text ? { exchange: pending(text), result: resolve(text) } : null;
+    return text ? { exchange: pending(text), result: resolveQuestion(text) } : null;
   });
   const [history, setHistory] = useState<Exchange[]>(() => (initial ? [initial.exchange] : []));
   const inputRef = useRef<HTMLInputElement>(null);
@@ -159,7 +159,7 @@ export function AssistantPanel({
   const busy = history.some((h) => !h.answer);
 
   async function fill(exchange: Exchange) {
-    const result = await resolve(exchange.question);
+    const result = await resolveQuestion(exchange.question);
     setHistory((h) => h.map((x) => (x.id === exchange.id ? { ...x, ...result } : x)));
   }
 
@@ -206,7 +206,7 @@ export function AssistantPanel({
       <aside
         role="dialog"
         aria-modal="true"
-        aria-label="Ask Medisense"
+        aria-label="Ask Medisense AI"
         className="fixed inset-y-0 right-0 z-41 flex w-130 max-w-full flex-col overflow-hidden rounded-l-sheet bg-canvas shadow-overlay"
       >
         <header className="bg-sidebar px-6 pt-6 pb-5">
@@ -218,7 +218,7 @@ export function AssistantPanel({
               <div>
                 <p className="eyebrow text-accent-fill">Medisense intelligence</p>
                 <h2 className="mt-0.5 font-serif text-h2 font-medium text-sidebar-ink">
-                  Ask Medisense
+                  Ask Medisense AI
                 </h2>
               </div>
             </div>
@@ -286,7 +286,7 @@ export function AssistantPanel({
               )}
 
               <div className="mt-6 mb-2 eyebrow">Most asked by {role.toLowerCase()}</div>
-              <ol className="overflow-hidden rounded-card border border-border bg-surface">
+              <ol className="overflow-hidden rounded-card border border-border bg-surface surface-lift">
                 {popular.map((q, i) => (
                   <li key={q} className="border-t border-border first:border-t-0">
                     <button

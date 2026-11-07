@@ -4,6 +4,16 @@ import { dt } from "@/lib/clock";
 /** Activity recorded before the demo starts. Actions taken during the demo are appended. */
 export const initialAuditEntries: AuditEntry[] = [
   {
+    id: "form-sync-failed",
+    day: dt("2026-10-20"),
+    time: "10:19",
+    actor: "Automation",
+    isAi: false,
+    action:
+      "Sync to practice management system failed (timeout): Assistive technology request (low cost)",
+    object: "Ava Mitchell",
+  },
+  {
     id: "supervision-brief",
     day: dt("2026-10-20"),
     time: "09:15",
@@ -62,4 +72,5 @@ export const demoActionTimes = {
 export const auditDayLabels: Record<string, string> = {
   [dt("2026-10-20")]: dt("Tuesday 20 Oct 2026"),
   [dt("2026-10-19")]: dt("Monday 19 Oct 2026"),
+  [dt("2026-10-21")]: dt("Wednesday 21 Oct 2026"),
 };

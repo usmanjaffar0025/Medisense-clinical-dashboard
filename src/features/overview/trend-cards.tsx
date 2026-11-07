@@ -49,7 +49,7 @@ export function TrendCards({
   return (
     <section
       aria-label="Trends"
-      className="mt-6 grid grid-cols-1 gap-px overflow-hidden rounded-card border border-border bg-border sm:grid-cols-2 lg:grid-cols-4"
+      className="stat-band mt-6 grid grid-cols-1 gap-px overflow-hidden rounded-card border border-border bg-border surface-lift sm:grid-cols-2 lg:grid-cols-4"
     >
       {cards.map((card) => {
         const last = card.values[card.values.length - 1] ?? 0;

@@ -12,6 +12,8 @@ import { scoreThresholds, type ClinicianScope } from "@/data/clinicians";
 import { summarise } from "@/data/organisation";
 import type { CaseloadStatus, Discipline, Site } from "@/data/types";
 import { weeks } from "@/data/weeks";
+import { useDemoStore } from "@/state/demo-store";
+import { adjustClinician, unownedFollowUps } from "@/state/story-selectors";
 import { AttentionPanel } from "./attention-panel";
 import { CaseloadHealth } from "./caseload-health";
 import { KpiGrid } from "./kpi-grid";
@@ -25,12 +27,50 @@ const statusColour: Record<CaseloadStatus, string> = {
 
 const percent = (v: number) => `${v}%`;
 
+/** The other headline figures are already at the top of the Overview. */
+const teamDetailFigures = [
+  "Active clinicians",
+  "Active clients",
+  "Average caseload",
+  "Clinicians near capacity",
+];
+
 export function OverviewDashboard() {
   const [site, setSite] = useState<"all" | Site>("all");
   const [discipline, setDiscipline] = useState<"all" | Discipline>("all");
   const [period, setPeriod] = useState<"6" | "12">("12");
   const scope: ClinicianScope = { site, discipline };
-  const s = summarise(scope);
+  const caseNotes = useDemoStore((x) => x.caseNotes);
+  const tasks = useDemoStore((x) => x.tasks);
+  const story = useDemoStore((x) => x.story);
+  const adjust = adjustClinician({ caseNotes, tasks, story });
+  const base = summarise(scope);
+  const live = summarise(scope, adjust);
+  const withLatest = (series: number[], value: number) => [...series.slice(0, -1), value];
+  const everyone = site === "all" && discipline === "all";
+  const s = {
+    ...live,
+    kpis: live.kpis.map((k, i) => ({
+      ...k,
+      was: base.kpis[i]?.value !== k.value ? base.kpis[i]?.value : undefined,
+      caption:
+        k.label === "Follow-ups overdue" && everyone
+          ? `${unownedFollowUps(story)} have no owner`
+          : k.caption,
+    })),
+    series: {
+      ...live.series,
+      notesDue: withLatest(
+        live.series.notesDue,
+        live.list.reduce((sum, c) => sum + c.notesDue, 0),
+      ),
+      followUps: withLatest(
+        live.series.followUps,
+        live.list.reduce((sum, c) => sum + c.followUpsOverdue, 0),
+      ),
+    },
+  };
+  const previous = new Map(base.list.map((c) => [c.id, c]));
   const n = Number(period);
   const labels = weeks.slice(-n);
   const periodLabel = `${n} wks`;
@@ -147,11 +187,16 @@ export function OverviewDashboard() {
         </FilterField>
       </FilterBar>
 
-      <KpiGrid kpis={s.kpis} label="Organisation indicators" />
+      <KpiGrid
+        kpis={s.kpis.filter((k) => teamDetailFigures.includes(k.label))}
+        label="Organisation indicators"
+      />
       <TrendCards cards={cards} periodLabel={periodLabel} />
 
-      <div className="mt-6 grid items-stretch gap-6 lg:grid-cols-[minmax(0,1fr)_304px]">
-        <CaseloadHealth list={s.list} period={n} />
+      <div className="mt-6">
+        <CaseloadHealth previous={previous} list={s.list} period={n} />
+      </div>
+      <div className="mt-6">
         <AttentionPanel list={s.list} attention={s.attention} />
       </div>
 
@@ -215,7 +260,7 @@ export function OverviewDashboard() {
           <CardTitle
             id="pressure"
             title="Caseload pressure by clinician"
-            description="Caseload health score · Monitor from 60 · At Risk from 80"
+            description="Caseload health score · Watch from 60 · At Risk from 80"
           />
           <div className="mt-3">
             <BarList

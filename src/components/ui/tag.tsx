@@ -30,7 +30,7 @@ export function Tag({ tone, children }: { tone: TagTone; children: ReactNode }) 
 
 export const statusLabels: Record<CaseloadStatus, string> = {
   healthy: "Healthy",
-  monitor: "Monitor",
+  monitor: "Watch",
   "at-risk": "At Risk",
 };
 

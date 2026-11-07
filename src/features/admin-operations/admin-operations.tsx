@@ -110,7 +110,7 @@ export function AdminOperations() {
           <Link
             key={q.label}
             href={q.href}
-            className="group flex items-center justify-between rounded-card border border-border bg-surface px-5 py-4 hover:border-border-strong hover:no-underline"
+            className="group flex items-center justify-between rounded-card border border-border bg-surface px-5 py-4 surface-lift hover:border-border-strong hover:no-underline"
           >
             <span>
               <span className="block eyebrow">{q.label}</span>
@@ -127,7 +127,7 @@ export function AdminOperations() {
 
       <section
         aria-label="Compliance summary"
-        className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-5"
+        className="stat-band mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-5"
       >
         {metrics.map((m) => (
           <div key={m.label} className="flex flex-col gap-1.5 bg-surface px-5 py-4">

@@ -15,13 +15,14 @@ import { PriorityTag, Tag } from "@/components/ui/tag";
 import {
   clientTotals,
   clientsByRegion,
-  directoryClients,
   planReviewsByMonth,
   type DirectoryClient,
 } from "@/data/client-directory";
 import { sites } from "@/data/clinicians";
+import { liveDirectory } from "@/data/records";
 import type { Funding } from "@/data/types";
 import { cn } from "@/lib/cn";
+import { useDemoStore } from "@/state/demo-store";
 
 const COLUMNS =
   "minmax(190px,1.6fr) 96px minmax(130px,1fr) 128px minmax(180px,1.6fr) 84px 120px 96px 88px";
@@ -41,6 +42,10 @@ export function ClientDirectory() {
   const [clinician, setClinician] = useState("all");
   const [state, setState] = useState<StateFilter>("all");
   const [query, setQuery] = useState("");
+  const added = useDemoStore((x) => x.addedClients);
+  const edits = useDemoStore((x) => x.clientEdits);
+  const directoryClients = liveDirectory(added, edits);
+  const addedIds = new Set(added.map((c) => c.id));
 
   const clinicianNames = [...new Set(directoryClients.map((c) => c.clinician))].sort();
   const reviewSoon = (c: DirectoryClient) => c.planReviewDays <= 30;
@@ -54,15 +59,18 @@ export function ClientDirectory() {
     )
     .filter((c) => `${c.name} ${c.service}`.toLowerCase().includes(query.trim().toLowerCase()))
     .sort(
-      (a, b) => Number(b.hasProfile) - Number(a.hasProfile) || a.planReviewDays - b.planReviewDays,
+      (a, b) =>
+        Number(addedIds.has(b.id)) - Number(addedIds.has(a.id)) ||
+        Number(b.hasProfile) - Number(a.hasProfile) ||
+        a.planReviewDays - b.planReviewDays,
     );
 
   const reviewsNext30 = planReviewsByMonth[0];
   const metrics = [
     {
       label: "Active clients",
-      value: clientTotals.all,
-      caption: `${clientTotals.ndis} NDIS · ${clientTotals.agedCare} aged care`,
+      value: clientTotals.all + added.length,
+      caption: `${clientTotals.ndis + added.filter((c) => c.funding === "NDIS").length} NDIS · ${clientTotals.agedCare + added.filter((c) => c.funding === "Aged care").length} aged care`,
     },
     {
       label: "Brisbane North",
@@ -86,7 +94,7 @@ export function ClientDirectory() {
     <>
       <section
         aria-label="Client summary"
-        className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-5"
+        className="stat-band grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-5"
       >
         {metrics.map((m) => (
           <div key={m.label} className="flex flex-col gap-1.5 bg-surface px-5 py-4">
@@ -234,16 +242,12 @@ export function ClientDirectory() {
             {rows.map((c) => (
               <TableRow key={c.id} columns={COLUMNS}>
                 <div className="min-w-0 py-2">
-                  {c.hasProfile ? (
-                    <Link
-                      href={`/clients/${c.id}`}
-                      className="font-semibold text-ink-900 hover:text-accent"
-                    >
-                      {c.name}
-                    </Link>
-                  ) : (
-                    <span className="font-semibold">{c.name}</span>
-                  )}
+                  <Link
+                    href={`/clients/${c.id}`}
+                    className="font-semibold text-ink-900 hover:text-accent"
+                  >
+                    {c.name}
+                  </Link>
                   {c.age !== null && (
                     <span className="block text-caption text-ink-500">{c.age} yrs</span>
                   )}
@@ -266,17 +270,13 @@ export function ClientDirectory() {
                   )}
                 </div>
                 <div className="text-right">
-                  {c.hasProfile ? (
-                    <Link
-                      href={`/clients/${c.id}`}
-                      className="inline-flex items-center gap-1 text-small font-semibold text-accent"
-                    >
-                      Open
-                      <ArrowRight className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
-                    </Link>
-                  ) : (
-                    <span className="text-caption text-ink-400">Synced</span>
-                  )}
+                  <Link
+                    href={`/clients/${c.id}`}
+                    className="inline-flex items-center gap-1 text-small font-semibold text-accent"
+                  >
+                    Open
+                    <ArrowRight className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+                  </Link>
                 </div>
               </TableRow>
             ))}

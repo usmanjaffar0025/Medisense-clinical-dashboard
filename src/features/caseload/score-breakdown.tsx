@@ -67,7 +67,7 @@ export function ScoreBreakdown({
         <div className="mt-2 flex justify-between text-caption font-medium text-ink-500">
           <span>Healthy &lt;{thresholds.monitor}</span>
           <span>
-            Monitor {thresholds.monitor}–{thresholds.atRisk - 1}
+            Watch {thresholds.monitor}–{thresholds.atRisk - 1}
           </span>
           <span className="text-over">At Risk ≥{thresholds.atRisk}</span>
         </div>

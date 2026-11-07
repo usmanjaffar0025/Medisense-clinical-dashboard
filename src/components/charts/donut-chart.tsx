@@ -19,6 +19,7 @@ export function DonutChart({
   format = (v) => String(v),
   selected,
   onSelect,
+  stacked = false,
 }: {
   slices: DonutSlice[];
   centre: ReactNode;
@@ -28,12 +29,17 @@ export function DonutChart({
   format?: (value: number) => string;
   selected?: string | null;
   onSelect?: (id: string | null) => void;
+  /** Puts the legend under the ring, for narrow cards. */
+  stacked?: boolean;
 }) {
   const total = slices.reduce((sum, s) => sum + s.value, 0);
   const share = (v: number) => (total ? Math.round((v / total) * 100) : 0);
 
   return (
-    <figure aria-label={label} className="m-0 flex flex-wrap items-center gap-5">
+    <figure
+      aria-label={label}
+      className={`m-0 flex items-center gap-5 ${stacked ? "flex-col" : "flex-wrap"}`}
+    >
       <div className="relative flex-none" style={{ width: size, height: size }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -93,7 +99,7 @@ export function DonutChart({
           <span className="text-caption font-medium text-ink-500">{centreCaption}</span>
         </div>
       </div>
-      <ul className="flex min-w-40 flex-1 flex-col gap-0.5">
+      <ul className={`flex min-w-40 flex-col gap-0.5 ${stacked ? "w-full" : "flex-1"}`}>
         {slices.map((s) => {
           const content = (
             <>

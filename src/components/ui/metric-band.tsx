@@ -32,7 +32,7 @@ export function MetricBand({
     <section
       aria-label={label}
       className={cn(
-        "grid gap-px overflow-hidden rounded-card border border-border bg-border",
+        "stat-band grid gap-px overflow-hidden rounded-card border border-border bg-border surface-lift",
         columns[count],
       )}
     >

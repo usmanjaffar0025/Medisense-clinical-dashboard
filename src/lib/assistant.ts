@@ -262,7 +262,7 @@ const intents: Intent[] = [
       const due = libraryReports
         .map((r) => ({ ...r, current: statusOf(r.id, r.status) }))
         .filter((r) => r.current !== "Sent" && r.current !== "Approved" && r.dueInDays <= 14)
-        .filter((r) => ctx.role !== "Clinician" || r.clinician === "Hannah Wright")
+        .filter((r) => ctx.role !== "Clinician" || r.clinician === "Sarah Thompson")
         .sort((a, b) => a.dueInDays - b.dueInDays);
       return {
         title:
@@ -281,9 +281,9 @@ const intents: Intent[] = [
     match: /priorit|today|my day|first|focus/i,
     answer: (ctx) => {
       if (ctx.role === "Clinician") {
-        const mine = ctx.tasks.filter((t) => t.owner === "Hannah Wright" && !t.done);
+        const mine = ctx.tasks.filter((t) => t.owner === "Sarah Thompson" && !t.done);
         return {
-          title: "Your day, Hannah",
+          title: "Your day, Sarah",
           intro: `${hannahDay.appointments.length} visits today: ${hannahDay.scheduleNote}. Two AI note drafts are waiting and Emily's report is due ${wd("Friday")}.`,
           items: [
             ...hannahDay.appointments
@@ -369,7 +369,7 @@ const intents: Intent[] = [
           "Capacity is weighted by client complexity, overdue work and admin hours. Suggestions need leadership review.",
         items: [
           ...atRisk.map((c) => ({
-            label: `${c.name} · ${c.status === "at-risk" ? "At Risk" : "Monitor"}`,
+            label: `${c.name} · ${c.status === "at-risk" ? "At Risk" : "Watch"}`,
             detail: `${c.utilisation}% of capacity · ${c.notesOverdue} notes overdue · score ${c.score}`,
             href: c.id === "sarah-thompson" ? "/caseloads/sarah-thompson" : "/team-capacity",
           })),

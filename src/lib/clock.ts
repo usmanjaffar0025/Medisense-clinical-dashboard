@@ -59,6 +59,31 @@ export function todayLong() {
   return `${WEEKDAYS[p.wd]} ${p.day} ${MONTHS[p.m]} ${p.y}`;
 }
 
+/** A date `days` after today, as "Tuesday 20 October 2026". */
+export function longDate(days: number) {
+  const p = parts(TODAY + days * DAY);
+  return `${WEEKDAYS[p.wd]} ${p.day} ${MONTHS[p.m]} ${p.y}`;
+}
+
+/** A date `days` after today, as "2026-10-20", used to group audit entries by day. */
+export function isoDate(days: number) {
+  return new Date(TODAY + days * DAY).toISOString().slice(0, 10);
+}
+
+/** Calendar days from day `from` to the next working day, skipping Saturday and Sunday. */
+export function nextWorkingDayGap(from: number) {
+  let gap = 1;
+  while ([0, 6].includes(parts(TODAY + (from + gap) * DAY).wd)) gap += 1;
+  return gap;
+}
+
+/** The label of the date `workingDays` working days after day `from`, as "Tue 27 Oct". */
+export function workingDayLabel(from: number, workingDays: number) {
+  let day = from;
+  for (let i = 0; i < workingDays; i += 1) day += nextWorkingDayGap(day);
+  return dayLabel(day);
+}
+
 /** Today as "2026-10-20". */
 export const todayIso = new Date(TODAY).toISOString().slice(0, 10);
 

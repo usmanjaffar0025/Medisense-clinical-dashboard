@@ -1,6 +1,6 @@
 "use client";
 
-import { Car, Check, Video } from "lucide-react";
+import { CalendarPlus, Car, Check, Video } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import { DraftLabel, PenNib, draftSurface } from "@/components/ai/provenance";
 import { BarList } from "@/components/charts/bar-list";
@@ -17,13 +17,15 @@ import {
   TODAY,
   formatTime,
   scheduleDays,
+  liveSchedule,
   scheduleSuggestions,
-  scheduleWith,
   type AppointmentType,
   type ScheduleItem,
 } from "@/data/schedule";
 import { cn } from "@/lib/cn";
 import { useDemoStore } from "@/state/demo-store";
+import { BookVisitSheet } from "./book-visit";
+import { VisitSheet } from "./visit-sheet";
 
 const typeColour: Record<AppointmentType, string> = {
   "Home visit": colour.series1,
@@ -78,13 +80,25 @@ function Legend() {
   );
 }
 
-function Block({ item, compact = false }: { item: ScheduleItem; compact?: boolean }) {
+function Block({
+  item,
+  compact = false,
+  onOpen,
+}: {
+  item: ScheduleItem;
+  compact?: boolean;
+  onOpen: (item: ScheduleItem) => void;
+}) {
   const cancelled = item.status === "cancelled";
+  const isVisit = item.type === "Home visit" || item.type === "Telehealth";
+  const Tag = isVisit ? "button" : "div";
   return (
-    <div
+    <Tag
+      {...(isVisit ? { type: "button" as const, onClick: () => onOpen(item) } : {})}
       title={`${formatTime(item.start)} · ${item.title}${item.suburb ? ` · ${item.suburb}` : ""}`}
       className={cn(
-        "h-full overflow-hidden rounded-[6px] px-2 py-1 text-caption leading-tight",
+        "block h-full w-full overflow-hidden rounded-[6px] px-2 py-1 text-left text-caption leading-tight",
+        isVisit && "cursor-pointer hover:brightness-95",
         item.fromSuggestion && "ring-2 ring-accent-fill",
       )}
       style={blockStyle(item)}
@@ -108,11 +122,17 @@ function Block({ item, compact = false }: { item: ScheduleItem; compact?: boolea
           {cancelled && <span>· open</span>}
         </div>
       )}
-    </div>
+    </Tag>
   );
 }
 
-function WeekCalendar({ items }: { items: ScheduleItem[] }) {
+function WeekCalendar({
+  items,
+  onOpen,
+}: {
+  items: ScheduleItem[];
+  onOpen: (item: ScheduleItem) => void;
+}) {
   const height = (DAY_END - DAY_START) * PX_PER_MIN;
   return (
     <div className="overflow-x-auto">
@@ -193,7 +213,7 @@ function WeekCalendar({ items }: { items: ScheduleItem[] }) {
                       height: item.duration * PX_PER_MIN - 2,
                     }}
                   >
-                    <Block item={item} />
+                    <Block item={item} onOpen={onOpen} />
                   </div>
                 </div>
               ))}
@@ -214,10 +234,12 @@ function TeamDay({
   items,
   team,
   day,
+  onOpen,
 }: {
   items: ScheduleItem[];
   team: typeof clinicians;
   day: number;
+  onOpen: (item: ScheduleItem) => void;
 }) {
   const span = DAY_END - DAY_START;
   const pct = (m: number) => `${((m - DAY_START) / span) * 100}%`;
@@ -267,7 +289,7 @@ function TeamDay({
                     className="absolute inset-y-1.5"
                     style={{ left: pct(item.start), width: `${(item.duration / span) * 100}%` }}
                   >
-                    <Block item={item} compact />
+                    <Block item={item} compact onOpen={onOpen} />
                   </div>
                 ))}
               </div>
@@ -287,13 +309,19 @@ export function ScheduleWorkspace() {
   const [view, setView] = useState<"week" | "team">("week");
   const [clinicianId, setClinicianId] = useState("sarah-thompson");
   const [day, setDay] = useState<number>(TODAY);
+  const [booking, setBooking] = useState(false);
+  const [openVisitId, setOpenVisitId] = useState<string | null>(null);
+  const bookings = useDemoStore((s) => s.bookings);
+  const visitChanges = useDemoStore((s) => s.visitChanges);
 
   const accepted = Object.entries(suggestions)
     .filter(([, v]) => v === "accepted")
     .map(([id]) => id);
   const team = clinicians.filter((c) => region === "all" || c.site === region);
   const teamIds = new Set(team.map((c) => c.id));
-  const items = scheduleWith(accepted).filter((i) => teamIds.has(i.clinicianId));
+  const allItems = liveSchedule(accepted, bookings, visitChanges);
+  const items = allItems.filter((i) => teamIds.has(i.clinicianId));
+  const openVisit = allItems.find((i) => i.id === openVisitId);
   const sessions = items.filter((i) => i.type === "Home visit" || i.type === "Telehealth");
   const live = sessions.filter((i) => i.status !== "cancelled");
   const homeVisits = live.filter((i) => i.type === "Home visit");
@@ -369,11 +397,15 @@ export function ScheduleWorkspace() {
             <option key={s}>{s}</option>
           ))}
         </SelectField>
+        <Button size="sm" variant="primary" onClick={() => setBooking(true)}>
+          <CalendarPlus className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+          Book visit
+        </Button>
       </FilterBar>
 
       <section
         aria-label="Schedule summary"
-        className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-5"
+        className="stat-band grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-5"
       >
         {metrics.map((m) => (
           <div key={m.label} className="flex flex-col gap-1.5 bg-surface px-5 py-4">
@@ -590,11 +622,21 @@ export function ScheduleWorkspace() {
           <Legend />
         </div>
         {view === "week" ? (
-          <WeekCalendar items={weekItems} />
+          <WeekCalendar items={weekItems} onOpen={(i) => setOpenVisitId(i.id)} />
         ) : (
-          <TeamDay items={items} team={team} day={day} />
+          <TeamDay items={items} team={team} day={day} onOpen={(i) => setOpenVisitId(i.id)} />
         )}
       </Card>
+      {booking && (
+        <BookVisitSheet
+          onClose={() => setBooking(false)}
+          onBooked={(id) => {
+            setClinicianId(id);
+            setView("week");
+          }}
+        />
+      )}
+      {openVisit && <VisitSheet visit={openVisit} onClose={() => setOpenVisitId(null)} />}
     </>
   );
 }

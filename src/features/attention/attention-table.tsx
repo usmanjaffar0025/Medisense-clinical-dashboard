@@ -105,7 +105,7 @@ export function AttentionWorkspace() {
     <>
       <section
         aria-label="Summary"
-        className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.6fr)]"
+        className="stat-band grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.6fr)]"
       >
         <div className="flex flex-col gap-1 bg-surface px-5 py-4">
           <span className="eyebrow">Clients</span>
@@ -307,8 +307,8 @@ export function AttentionWorkspace() {
           </div>
         </div>
 
-        <div className="max-lg:overflow-x-auto" role="table" aria-label="Clients requiring review">
-          <div className="max-lg:min-w-260">
+        <div className="max-xl:overflow-x-auto" role="table" aria-label="Clients requiring review">
+          <div className="max-xl:min-w-260">
             <TableHeader columns={COLUMNS} className="gap-x-3.5">
               <div>Client</div>
               <div>Clinician</div>

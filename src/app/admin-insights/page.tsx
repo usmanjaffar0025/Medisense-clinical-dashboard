@@ -89,7 +89,7 @@ export default function AdminInsightsPage() {
 
         <section
           aria-label="Guardrails"
-          className="grid gap-px overflow-hidden rounded-card border border-border bg-border lg:col-span-12 lg:grid-cols-3"
+          className="stat-band grid gap-px overflow-hidden rounded-card border border-border bg-border lg:col-span-12 lg:grid-cols-3"
         >
           {guardrails.map((g, i) => (
             <div key={g.title} className="flex flex-col gap-2 bg-surface px-6 py-5.5">

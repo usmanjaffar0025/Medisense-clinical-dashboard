@@ -71,7 +71,7 @@ function provenance(g: CaseNoteGeneration | null, sample: CaseNoteSample) {
   const source = `Source: therapist note, ${sample.sessionDate}`;
   if (!g || g.source === "scripted") return `${caseNoteGeneratedAt} · ${source}`;
   const seconds = g.latencyMs ? ` in ${(g.latencyMs / 1000).toFixed(1)}s` : "";
-  return `Generated live by ${g.model ?? "Claude"}${seconds} · ${source}`;
+  return `Written by AI${seconds} · ${source}`;
 }
 
 function EmptyState({ error }: { error: string | null }) {
@@ -97,10 +97,7 @@ function ErrorNotice({ error }: { error: string }) {
       className="flex items-start gap-2 rounded-control bg-over-bg px-3 py-2.5 text-small text-over"
     >
       <AlertCircle className="mt-0.5 size-4 flex-none" strokeWidth={1.5} aria-hidden="true" />
-      <span>
-        {error}. Restore the sample note to see the prepared draft, or check the server log for the
-        <span className="font-mono"> [medisense-ai]</span> lines.
-      </span>
+      <span>{error}. Your note is saved. Try again, or restore the sample note.</span>
     </p>
   );
 }
@@ -213,11 +210,6 @@ export function NoteDraft({ sample }: { sample: CaseNoteSample }) {
         />
       </div>
 
-      {!approved && generation?.notice && (
-        <p className="rounded-control bg-surface-sunken px-3 py-2 text-caption font-medium text-ink-700">
-          {generation.notice}
-        </p>
-      )}
       {!approved && error && <ErrorNotice error={error} />}
 
       {template === "structured" ? (
@@ -281,11 +273,11 @@ export function NoteDraft({ sample }: { sample: CaseNoteSample }) {
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="primary" onClick={() => approveNote(sample.id)}>
                 <Check className="size-4" strokeWidth={2} aria-hidden="true" />
-                Accept
+                Approve note
               </Button>
               <Button onClick={() => editNote(sample.id)}>Edit</Button>
               <Button variant="ghost" onClick={() => void regenerate()}>
-                Regenerate
+                Regenerate with AI
               </Button>
               <a href="#sources" className="ml-1 text-small font-semibold text-accent">
                 View sources

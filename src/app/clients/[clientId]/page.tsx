@@ -1,11 +1,9 @@
-import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ButtonLink } from "@/components/ui/button";
-import { PageContainer, PageHeader } from "@/components/ui/page";
+import { PageContainer } from "@/components/ui/page";
 import { clientProfileById, clientProfiles } from "@/data/client-profiles";
-import { ClientProfileView } from "@/features/clients/client-profile";
+import { ClientRecordView } from "@/features/clients/client-record";
+import { LiveProfile } from "@/features/clients/live-profile";
 
 type Params = { params: Promise<{ clientId: string }> };
 
@@ -30,35 +28,8 @@ export default function ClientProfilePage({ params }: Params) {
 }
 
 async function Profile({ params }: Params) {
-  const profile = clientProfileById((await params).clientId);
-  if (!profile) notFound();
-
-  return (
-    <>
-      <PageHeader
-        eyebrow={`Client profile · ${profile.funding} · client since ${profile.clientSince}`}
-        title={profile.name}
-        description={`${profile.age} yrs · ${profile.service} · ${profile.clinician} · ${profile.suburb}, ${profile.region} · ${profile.visitType}`}
-        leading={
-          <span className="flex size-14 flex-none items-center justify-center rounded-full bg-accent-tint font-serif text-h2 text-accent">
-            {profile.initials}
-          </span>
-        }
-        actions={
-          <>
-            <ButtonLink href="/clients">
-              <ArrowLeft className="size-4" strokeWidth={1.5} aria-hidden="true" />
-              All clients
-            </ButtonLink>
-            {profile.links.map((l, i) => (
-              <ButtonLink key={l.href} href={l.href} variant={i === 0 ? "primary" : "secondary"}>
-                {l.label}
-              </ButtonLink>
-            ))}
-          </>
-        }
-      />
-      <ClientProfileView profile={profile} />
-    </>
-  );
+  const { clientId } = await params;
+  const profile = clientProfileById(clientId);
+  // Clients added in a demo session exist only in the browser, so the page looks them up there.
+  return profile ? <LiveProfile profile={profile} /> : <ClientRecordView id={clientId} />;
 }

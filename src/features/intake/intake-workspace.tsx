@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Copy, FileText, Mail, Users } from "lucide-react";
+import { ArrowRight, CalendarPlus, Check, Copy, FileText, Mail, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { BarList } from "@/components/charts/bar-list";
@@ -11,13 +11,27 @@ import { Caption, Card, CardTitle } from "@/components/ui/card";
 import { Tag, type TagTone } from "@/components/ui/tag";
 import {
   referralStages,
-  referrals,
+  referrals as seededReferrals,
+  seedExtraction,
   stageLabels,
   type Referral,
   type ReferralStatus,
 } from "@/data/referrals";
+import {
+  clientRecord,
+  findDuplicate,
+  liveDirectory,
+  newClientId,
+  regionForSuburb,
+  type ClientRecord,
+} from "@/data/records";
+import { ClientFormSheet } from "@/features/clients/client-form";
+import { BookVisitSheet } from "@/features/schedule/book-visit";
 import { cn } from "@/lib/cn";
+import type { ReferralExtraction } from "@/lib/story/types";
 import { useDemoStore } from "@/state/demo-store";
+import { useStoryAi } from "@/state/use-story-ai";
+import { NewReferralSheet } from "./new-referral";
 
 const statusTone: Record<ReferralStatus, TagTone> = {
   New: "live",
@@ -34,12 +48,18 @@ const statusTone: Record<ReferralStatus, TagTone> = {
 const done: ReferralStatus[] = ["Profile created", "Merged", "First visit booked"];
 
 function ageLabel(hours: number) {
+  if (hours === 0) return "just now";
   return hours < 24 ? `${hours} h ago` : `${Math.round(hours / 24)} d ago`;
 }
 
 export function IntakeWorkspace() {
   const statuses = useDemoStore((s) => s.referrals);
-  const [selectedId, setSelectedId] = useState(referrals[0]?.id ?? "");
+  const addedReferrals = useDemoStore((s) => s.addedReferrals);
+  const referrals = [...addedReferrals, ...seededReferrals];
+  const [selectedId, setSelectedId] = useState(
+    addedReferrals[0]?.id ?? seededReferrals[0]?.id ?? "",
+  );
+  const [adding, setAdding] = useState(false);
   const selected = referrals.find((r) => r.id === selectedId);
   const statusOf = (r: Referral) => statuses[r.id] ?? r.status;
 
@@ -97,7 +117,7 @@ export function IntakeWorkspace() {
     <>
       <section
         aria-label="Intake summary"
-        className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-5"
+        className="stat-band grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-5"
       >
         {metrics.map((m) => (
           <div key={m.label} className="flex flex-col gap-1.5 bg-surface px-5 py-4">
@@ -138,6 +158,12 @@ export function IntakeWorkspace() {
               id="queue"
               title="Referral queue"
               description="Newest first · select to review"
+              aside={
+                <Button size="sm" variant="primary" onClick={() => setAdding(true)}>
+                  <Plus className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+                  New referral
+                </Button>
+              }
             />
           </div>
           <ul>
@@ -157,7 +183,8 @@ export function IntakeWorkspace() {
                   >
                     <span className="flex items-center justify-between gap-2">
                       <span className="font-semibold">
-                        {r.client}, {r.age}
+                        {r.client}
+                        {r.age === null ? "" : `, ${r.age}`}
                       </span>
                       <Tag tone={statusTone[status]}>{status}</Tag>
                     </span>
@@ -176,27 +203,125 @@ export function IntakeWorkspace() {
 
         <div className="lg:col-span-8">
           {selected && (
-            <ReferralDetail key={selected.id} referral={selected} status={statusOf(selected)} />
+            <ReferralDetailLoader
+              key={selected.id}
+              referral={selected}
+              status={statusOf(selected)}
+            />
           )}
         </div>
       </div>
+      {adding && <NewReferralSheet onClose={() => setAdding(false)} onAdded={setSelectedId} />}
     </>
   );
 }
 
-function ReferralDetail({ referral, status }: { referral: Referral; status: ReferralStatus }) {
+/** Seeded referrals are read by AI the first time they're opened; new ones already have been. */
+function ReferralDetailLoader({
+  referral,
+  status,
+}: {
+  referral: Referral;
+  status: ReferralStatus;
+}) {
+  const isSeeded = seededReferrals.some((r) => r.id === referral.id);
+  return isSeeded ? (
+    <SeededReferral referral={referral} status={status} />
+  ) : (
+    <ReferralDetail
+      referral={referral}
+      status={status}
+      extraction={seedExtraction(referral)}
+      missing={referral.missing}
+      loading={false}
+    />
+  );
+}
+
+function SeededReferral({ referral, status }: { referral: Referral; status: ReferralStatus }) {
+  const ai = useStoryAi<ReferralExtraction>(
+    `referral:${referral.id}`,
+    { kind: "referral", lines: referral.document },
+    seedExtraction(referral),
+  );
+  const extraction = ai.data ?? seedExtraction(referral);
+  // A seeded referral with nothing missing stays that way; AI only rewords what is missing.
+  const missing =
+    referral.missing.length === 0
+      ? []
+      : extraction.missing.length
+        ? extraction.missing
+        : referral.missing;
+  return (
+    <ReferralDetail
+      referral={referral}
+      status={status}
+      extraction={extraction}
+      missing={missing}
+      loading={ai.loading}
+    />
+  );
+}
+
+function fallbackRequest(missing: string[]) {
+  return `Hello,
+
+Thanks for your referral. Before we book a first visit, could you please send us:
+
+${missing.map((m) => `- ${m}`).join("\n")}
+
+Kind regards,
+Medisense intake team`;
+}
+
+function ReferralDetail({
+  referral,
+  status,
+  extraction,
+  missing,
+  loading,
+}: {
+  referral: Referral;
+  status: ReferralStatus;
+  extraction: ReferralExtraction;
+  missing: string[];
+  loading: boolean;
+}) {
   const requestInfo = useDemoStore((s) => s.requestReferralInfo);
   const verify = useDemoStore((s) => s.verifyReferral);
   const merge = useDemoStore((s) => s.mergeReferral);
   const [hoverLine, setHoverLine] = useState<number | null>(null);
   const [showEmail, setShowEmail] = useState(false);
-  const [email, setEmail] = useState(referral.requestEmail ?? "");
+  const [email, setEmail] = useState("");
+  const [sheet, setSheet] = useState<"verify" | "book" | null>(null);
+  const clearDuplicate = useDemoStore((s) => s.clearDuplicate);
+  const added = useDemoStore((s) => s.addedClients);
+  const edits = useDemoStore((s) => s.clientEdits);
+  const requestEmail = extraction.requestEmail || fallbackRequest(missing);
+  const existing = findDuplicate(referral.client, added);
+  // A referral confirmed as a different person gets its own record, even with the same name.
+  const reusesRecord = existing && !referral.duplicate;
+  const draftClient: ClientRecord = {
+    id: reusesRecord ? existing.id : "",
+    name: referral.client === "Name not stated" ? "" : referral.client,
+    age: referral.age,
+    funding: referral.funding,
+    clinician: referral.suggestedClinician ?? "",
+    region: regionForSuburb(referral.suburb) ?? referral.region,
+    suburb: referral.suburb === "Suburb not stated" ? "" : referral.suburb,
+    service: referral.services === "Not stated" ? "" : referral.services,
+    contactName: referral.contactName ?? extraction.contactName,
+    contactPhone: referral.contactPhone ?? extraction.contactPhone,
+    state: "New",
+  };
+  const directoryMatch = liveDirectory(added, edits).find((c) => c.name === referral.client);
+  const client = directoryMatch ? clientRecord(directoryMatch.id, added, edits) : null;
 
   const finished = done.includes(status);
   const canVerify =
     !finished &&
     status !== "Possible duplicate" &&
-    (referral.missing.length === 0 || status === "Info requested");
+    (missing.length === 0 || status === "Info requested");
 
   return (
     <Card aria-labelledby="referral-title" className="overflow-hidden">
@@ -206,7 +331,8 @@ function ReferralDetail({ referral, status }: { referral: Referral; status: Refe
             {referral.sourceDetail} · {referral.received}
           </p>
           <h2 id="referral-title" className="mt-1.5 headline text-h2">
-            {referral.client}, {referral.age}
+            {referral.client}
+            {referral.age === null ? "" : `, ${referral.age}`}
           </h2>
           <Caption className="mt-1">
             {referral.funding} · {referral.services} · {referral.suburb} ({referral.region})
@@ -247,23 +373,35 @@ function ReferralDetail({ referral, status }: { referral: Referral; status: Refe
             </span>
             <Caption>Hover to see the source line</Caption>
           </div>
-          <dl className="flex flex-col">
-            {referral.fields.map((f) => (
-              <div
-                key={f.label}
-                onMouseEnter={() => setHoverLine(f.line)}
-                onMouseLeave={() => setHoverLine(null)}
-                className="grid cursor-default grid-cols-[112px_minmax(0,1fr)_auto] items-start gap-2 border-b border-border py-1.5 last:border-b-0"
-              >
-                <dt className="text-caption font-semibold text-ink-500">{f.label}</dt>
-                <dd className="text-small">{f.value}</dd>
-                <span className="flex items-center gap-1">
-                  <span className="font-mono text-eyebrow text-ink-400">L{f.line}</span>
-                  {f.confidence === "Check" && <Tag tone="monitor">Check</Tag>}
-                </span>
-              </div>
-            ))}
-          </dl>
+          {loading ? (
+            <div aria-busy="true" className="flex flex-col gap-3 py-2">
+              <Caption>AI is reading this referral…</Caption>
+              {[0, 1, 2, 3, 4].map((n) => (
+                <span
+                  key={n}
+                  className="block h-3 w-5/6 animate-pulse rounded-full bg-border motion-reduce:animate-none"
+                />
+              ))}
+            </div>
+          ) : (
+            <dl className="flex flex-col">
+              {extraction.fields.map((f) => (
+                <div
+                  key={f.label}
+                  onMouseEnter={() => setHoverLine(f.line)}
+                  onMouseLeave={() => setHoverLine(null)}
+                  className="grid cursor-default grid-cols-[112px_minmax(0,1fr)_auto] items-start gap-2 border-b border-border py-1.5 last:border-b-0"
+                >
+                  <dt className="text-caption font-semibold text-ink-500">{f.label}</dt>
+                  <dd className="text-small">{f.value}</dd>
+                  <span className="flex items-center gap-1">
+                    <span className="font-mono text-eyebrow text-ink-400">L{f.line}</span>
+                    {f.confidence === "Check" && <Tag tone="monitor">Check</Tag>}
+                  </span>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
       </div>
 
@@ -277,24 +415,36 @@ function ReferralDetail({ referral, status }: { referral: Referral; status: Refe
                 {referral.duplicate.reason}.
               </span>
             </span>
-            <Button size="sm" variant="primary" onClick={() => merge(referral.id)}>
-              Add {referral.services} to existing profile
-            </Button>
+            <span className="flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => clearDuplicate(referral.id)}>
+                It&apos;s a different person
+              </Button>
+              <Button size="sm" variant="primary" onClick={() => merge(referral.id)}>
+                Add {referral.services} to existing profile
+              </Button>
+            </span>
           </div>
         )}
 
-        {referral.missing.length > 0 && !finished && (
+        {missing.length > 0 && !finished && (
           <div className="rounded-control border border-border bg-monitor-bg px-4 py-3">
             <div className="mb-1 text-small font-semibold text-monitor">
-              Missing before the first visit · {referral.missing.length}
+              Missing before the first visit · {missing.length}
             </div>
             <ul className="flex list-disc flex-col gap-0.5 pl-4.5 text-small">
-              {referral.missing.map((m) => (
+              {missing.map((m) => (
                 <li key={m}>{m}</li>
               ))}
             </ul>
-            {status !== "Info requested" && referral.requestEmail && !showEmail && (
-              <Button size="sm" className="mt-2.5" onClick={() => setShowEmail(true)}>
+            {status !== "Info requested" && !showEmail && !loading && (
+              <Button
+                size="sm"
+                className="mt-2.5"
+                onClick={() => {
+                  setEmail(requestEmail);
+                  setShowEmail(true);
+                }}
+              >
                 <Mail className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
                 Draft request for missing information
               </Button>
@@ -368,6 +518,25 @@ function ReferralDetail({ referral, status }: { referral: Referral; status: Refe
                 Tasks
                 <ArrowRight className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
               </Link>
+              {status === "Profile created" && client && (
+                <button
+                  type="button"
+                  onClick={() => setSheet("book")}
+                  className="inline-flex cursor-pointer items-center gap-1 text-small font-semibold text-accent hover:text-accent-hover"
+                >
+                  <CalendarPlus className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+                  Book first visit
+                </button>
+              )}
+              {client && (
+                <Link
+                  href={`/clients/${client.id}`}
+                  className="inline-flex items-center gap-1 text-small font-semibold"
+                >
+                  Open client
+                  <ArrowRight className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+                </Link>
+              )}
               {referral.id === "leila-haddad" && (
                 <Link
                   href="/forms?form=agreement-leila"
@@ -381,7 +550,7 @@ function ReferralDetail({ referral, status }: { referral: Referral; status: Refe
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
-            <Button variant="primary" disabled={!canVerify} onClick={() => verify(referral.id)}>
+            <Button variant="primary" disabled={!canVerify} onClick={() => setSheet("verify")}>
               <Copy className="size-4" strokeWidth={1.5} aria-hidden="true" />
               Verify &amp; create client profile
             </Button>
@@ -395,6 +564,22 @@ function ReferralDetail({ referral, status }: { referral: Referral; status: Refe
           </div>
         )}
       </div>
+      {sheet === "verify" && (
+        <ClientFormSheet
+          title="Check details and create client"
+          description="AI filled this in from the referral. Correct anything that's wrong."
+          initial={draftClient}
+          submitLabel="Create client"
+          onClose={() => setSheet(null)}
+          onSubmit={(next) => {
+            verify(referral.id, next.id ? next : { ...next, id: newClientId(next.name, added) });
+            setSheet(null);
+          }}
+        />
+      )}
+      {sheet === "book" && client && (
+        <BookVisitSheet client={client} onClose={() => setSheet(null)} />
+      )}
     </Card>
   );
 }

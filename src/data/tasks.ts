@@ -24,6 +24,8 @@ export type Task = {
   source: TaskSource;
   done: boolean;
   href?: string;
+  /** The sentence in an approved note that this task came from. */
+  sentence?: string;
 };
 
 /** A follow-up the AI proposes from an approved note; it becomes a task only after confirmation. */
@@ -171,7 +173,7 @@ export const seedTasks: Task[] = [
     id: "t-sophie-consent",
     title: "Request signed telehealth consent",
     client: "Sophie Williams",
-    owner: "Admin team",
+    owner: "Jo Marsh",
     due: dt("Wed 21 Oct"),
     daysOverdue: -1,
     priority: "Medium",
@@ -196,7 +198,7 @@ export const seedTasks: Task[] = [
     id: "t-henry-quote",
     title: "Chase equipment quote",
     client: "Henry Ng",
-    owner: "Admin team",
+    owner: "Jo Marsh",
     due: dt("Thu 15 Oct"),
     daysOverdue: 5,
     priority: "Medium",
@@ -209,12 +211,38 @@ export const seedTasks: Task[] = [
     title: "Return parent call about sensory diet",
     client: "Isla Murphy",
     owner: "Sarah Thompson",
-    due: dt("Sat 17 Oct"),
+    due: dt("Thu 15 Oct"),
     daysOverdue: 3,
     priority: "Medium",
     type: "Client follow-up",
     source: "Manual",
     done: false,
+  },
+  {
+    id: "t-ruth-quote",
+    title: "Get a builder quote for the home modification",
+    client: "Ruth Hallam",
+    owner: "Jo Marsh",
+    due: dt("Tue 20 Oct"),
+    daysOverdue: 0,
+    priority: "High",
+    type: "Document request",
+    source: "Manual",
+    done: false,
+    href: "/forms?form=home-mod-ruth",
+  },
+  {
+    id: "t-leila-visit",
+    title: "Book first home visit",
+    client: "Leila Haddad",
+    owner: "Admin team",
+    due: dt("Fri 23 Oct"),
+    daysOverdue: -3,
+    priority: "Medium",
+    type: "Scheduling",
+    source: "AI from referral",
+    done: false,
+    href: "/intake",
   },
   {
     id: "t-zara-goals",

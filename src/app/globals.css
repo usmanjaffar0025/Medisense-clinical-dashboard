@@ -4,13 +4,16 @@
  * Design tokens from docs/design-system.md.
  * The default Tailwind palette is cleared so only Medisense colours can be used.
  */
+@custom-variant blue (&:where(html[data-theme="clear-blue"] *));
+
 @theme {
   --color-*: initial;
   --color-white: #ffffff;
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  /* Pearl & Champagne. */
+  /* Fallback values. The Blue and Green palettes below set the ones people see. */
+  --color-page: #f5f3ee;
   --color-canvas: #f5f3ee;
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
@@ -21,16 +24,19 @@
 
   --color-ink-900: #17150f;
   --color-ink-700: #5e5b54;
-  --color-ink-500: #8c8981;
-  --color-ink-400: #b3afa6;
+  --color-ink-500: #6b6860;
+  --color-ink-400: #716e66;
 
   /* Obsidian navigation rail with ivory text. */
   --color-sidebar: #0a0b0d;
   --color-sidebar-ink: #f5f3ee;
   --color-sidebar-muted: rgb(245 243 238 / 0.62);
-  --color-sidebar-faint: rgb(245 243 238 / 0.42);
+  --color-sidebar-faint: rgb(245 243 238 / 0.55);
   --color-sidebar-hover: rgb(245 243 238 / 0.06);
   --color-sidebar-border: rgb(245 243 238 / 0.1);
+  --color-nav-active: rgb(245 243 238 / 0.06);
+  --color-nav-active-ink: #c9a96a;
+  --color-topbar: #f5f3ee;
 
   /* Bronze is the text accent (links, key figures, lines); champagne is the fill. */
   --color-accent: #8a6a2b;
@@ -41,16 +47,16 @@
   --color-accent-fill-pressed: #b39454;
   --color-on-accent: #14110a;
 
-  --color-healthy: #2e8b63;
+  --color-healthy: #22704e;
   --color-healthy-bg: rgb(46 139 99 / 0.1);
   --color-healthy-dot: #2e8b63;
-  --color-monitor: #a8680f;
+  --color-monitor: #875208;
   --color-monitor-bg: rgb(168 104 15 / 0.1);
   --color-monitor-dot: #a8680f;
-  --color-over: #c4432f;
+  --color-over: #ad3724;
   --color-over-bg: rgb(196 67 47 / 0.1);
   --color-over-dot: #c4432f;
-  --color-available: #2f6db5;
+  --color-available: #28609f;
   --color-available-bg: rgb(47 109 181 / 0.1);
   --color-available-dot: #2f6db5;
 
@@ -115,25 +121,453 @@
   --radius-control: 6px;
   --radius-card: 10px;
   --radius-sheet: 14px;
+  --radius-nav: 0 6px 6px 0;
 
   --shadow-overlay: 0 1px 2px rgb(60 45 15 / 0.06), 0 12px 32px rgb(60 45 15 / 0.08);
-  --shadow-focus: 0 0 0 3px rgb(201 169 106 / 0.45);
-  --shadow-flag: inset 0 2px 0 #a8680f;
-  --shadow-rule-over: inset 2px 0 0 #c4432f;
-  --shadow-rule-accent: inset 2px 0 0 #c9a96a;
-  --shadow-hairline: 0 0 0 1px rgb(23 21 15 / 0.08);
-  --shadow-underline-accent: inset 0 -1px 0 #8a6a2b;
+  --shadow-focus: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-accent-hover);
+  --shadow-focus-dark: 0 0 0 2px var(--color-sidebar), 0 0 0 4px var(--color-accent-fill);
+  --shadow-flag: inset 0 2px 0 var(--color-monitor-dot);
+  --shadow-rule-over: inset 2px 0 0 var(--color-over-dot);
+  --shadow-rule-accent: inset 2px 0 0 var(--color-accent-fill);
+  --shadow-hairline: 0 0 0 1px var(--color-border);
+  --shadow-underline-accent: inset 0 -1px 0 var(--color-accent);
 
   --spacing-sidebar: 248px;
 }
 
+/*
+ * Values that are not Tailwind theme keys. Each one is a place where a theme can differ in more
+ * than colour.
+ */
+:root {
+  --headline-weight: 500;
+  --headline-tracking: -0.01em;
+  --eyebrow-transform: uppercase;
+  --eyebrow-tracking: 0.08em;
+  --surface-lift: none;
+  --nav-active-rule: inset 2px 0 0 #c9a96a;
+  --hero-wash: none;
+  --primary-sheen: none;
+  --hero-ink: #0a2463;
+  --room-glow: #17408f;
+  --room-deep: #0a1a3f;
+}
+
+/*
+ * Clear Blue: pale blue navigation, midnight heroes, a white page and lifted white cards. Text values
+ * meet 4.5:1 on both the page and card surfaces; series colours pass the palette validator.
+ */
+html[data-theme="clear-blue"] {
+  --color-page: #ffffff;
+  --color-canvas: #f4f8fe;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f6f9fe;
+  --color-border: rgb(16 40 80 / 0.09);
+  --color-border-strong: rgb(16 40 80 / 0.18);
+  --color-grid: rgb(16 40 80 / 0.07);
+
+  --color-ink-900: #0b1533;
+  --color-ink-700: #475467;
+  --color-ink-500: #566379;
+  --color-ink-400: #5f6b80;
+
+  --color-sidebar: #f4f8fe;
+  --color-sidebar-ink: #101c35;
+  --color-sidebar-muted: #475467;
+  --color-sidebar-faint: #5f6b80;
+  --color-sidebar-hover: #e4eefd;
+  --color-sidebar-border: rgb(16 40 80 / 0.09);
+  --color-nav-active: #1570ef;
+  --color-nav-active-ink: #ffffff;
+  --color-topbar: #ffffff;
+
+  --color-accent: #175cd3;
+  --color-accent-hover: #1849a9;
+  --color-accent-tint: rgb(21 112 239 / 0.1);
+  --color-accent-fill: #1570ef;
+  --color-accent-fill-hover: #175cd3;
+  --color-accent-fill-pressed: #1849a9;
+  --color-on-accent: #ffffff;
+
+  --color-healthy: #067a55;
+  --color-healthy-bg: rgb(18 183 106 / 0.12);
+  --color-healthy-dot: #12b76a;
+  --color-monitor: #a8480a;
+  --color-monitor-bg: rgb(247 144 9 / 0.13);
+  --color-monitor-dot: #f79009;
+  --color-over: #c0271c;
+  --color-over-bg: rgb(240 68 56 / 0.1);
+  --color-over-dot: #d92d20;
+  --color-available: #175cd3;
+  --color-available-bg: rgb(21 112 239 / 0.1);
+  --color-available-dot: #2e90fa;
+
+  --color-draft: #f5f9ff;
+  --color-draft-rule: #84adff;
+  --color-brass: #175cd3;
+
+  --color-chart-evergreen: #1570ef;
+  --color-chart-sage: #0e9f8e;
+  --color-chart-sand: #b2ccff;
+  --color-chart-slate: #7a5af8;
+  --color-chart-stone: #98a2b3;
+  --color-chart-clay: #d92d20;
+
+  --color-series-1: #1570ef;
+  --color-series-2: #0e9f8e;
+  --color-series-3: #7a5af8;
+  --color-series-4: #c4679b;
+
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+
+  --radius-tag: 6px;
+  --radius-control: 12px;
+  --radius-card: 20px;
+  --radius-sheet: 28px;
+  --radius-nav: 12px;
+
+  --headline-weight: 500;
+  --headline-tracking: -0.018em;
+  --eyebrow-transform: uppercase;
+  --eyebrow-tracking: 0.09em;
+  --surface-lift: 0 1px 2px rgb(16 40 80 / 0.04), 0 8px 24px rgb(16 40 80 / 0.05);
+  --nav-active-rule: 0 4px 12px rgb(21 112 239 / 0.25);
+  --hero-wash: linear-gradient(115deg, #e8f1ff 0%, #f5f9ff 55%, #eafaf8 100%);
+}
+
+/*
+ * Clear Blue's depth. These rules target shared classes, so every screen gets them without its own
+ * styling.
+ */
+html[data-theme="clear-blue"] {
+  --hero-deep: linear-gradient(120deg, #070f2b 0%, #0d2a6e 42%, #1257c9 78%, #0f8fa3 112%);
+  --primary-sheen: linear-gradient(135deg, #2f84f5 0%, #1257d6 100%);
+  --ai-border: linear-gradient(120deg, #1570ef 0%, #7a5af8 55%, #0e9f8e 100%);
+  --surface-lift: 0 1px 1px rgb(13 42 110 / 0.04), 0 18px 44px -12px rgb(13 42 110 / 0.14);
+  --nav-active-rule: 0 8px 18px rgb(21 112 239 / 0.3);
+}
+
+html[data-theme="clear-blue"] .page-hero {
+  --color-ink-900: #ffffff;
+  --color-ink-700: rgb(255 255 255 / 0.88);
+  --color-ink-500: rgb(255 255 255 / 0.82);
+  --color-ink-400: rgb(255 255 255 / 0.82);
+  --color-accent: #bfe0ff;
+  --color-brass: #bfe0ff;
+  --color-border: rgb(255 255 255 / 0.22);
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-sheet);
+  background: var(--hero-deep);
+  padding: clamp(18px, 3vw, 30px);
+  color: #ffffff;
+  box-shadow: 0 18px 44px rgb(10 36 99 / 0.24);
+}
+
+html[data-theme="clear-blue"] .page-hero::before,
+html[data-theme="clear-blue"] .page-hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+html[data-theme="clear-blue"] .page-hero::before {
+  top: -120px;
+  right: -60px;
+  width: 340px;
+  height: 340px;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.2), transparent 68%);
+}
+
+html[data-theme="clear-blue"] .page-hero::after {
+  bottom: -150px;
+  left: 28%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgb(46 213 197 / 0.26), transparent 68%);
+}
+
+html[data-theme="clear-blue"] .page-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Controls and cards inside a hero stay on their own light surface. */
+html[data-theme="clear-blue"] .page-hero :is([class*="rounded-control"], .on-light) {
+  --color-ink-900: #101c35;
+  --color-ink-700: #475467;
+  --color-ink-500: #566379;
+  --color-ink-400: #5f6b80;
+  --color-accent: #175cd3;
+  --color-brass: #175cd3;
+  --color-border: rgb(16 40 80 / 0.09);
+}
+
+html[data-theme="clear-blue"] .page-hero .bg-accent-tint:not(.on-light *) {
+  background-color: #ffffff;
+  color: #175cd3;
+}
+
+html[data-theme="clear-blue"] .page-hero h1 {
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1.1;
+  font-weight: 500;
+}
+
+html[data-theme="clear-blue"] .page-hero {
+  background:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 34px 34px,
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 34px 34px,
+    var(--hero-deep);
+  box-shadow: 0 26px 60px -18px rgb(7 15 43 / 0.5);
+}
+
+html[data-theme="clear-blue"] body {
+  letter-spacing: -0.006em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+html[data-theme="clear-blue"] .surface-lift {
+  transition:
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+html[data-theme="clear-blue"] :is(a, button).surface-lift:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 1px rgb(13 42 110 / 0.04),
+    0 24px 50px -12px rgb(13 42 110 / 0.2);
+}
+
+html[data-theme="clear-blue"] [role="group"].bg-surface-sunken {
+  border-radius: 9999px;
+  padding: 4px;
+  background-color: var(--color-canvas);
+}
+
+html[data-theme="clear-blue"] [role="group"].bg-surface-sunken > button {
+  height: 32px;
+  border-radius: 9999px;
+  padding-inline: 14px;
+}
+
+html[data-theme="clear-blue"] [role="group"].bg-surface-sunken > button[aria-pressed="true"] {
+  background-image: var(--primary-sheen);
+  color: #ffffff;
+  box-shadow: 0 6px 14px var(--primary-glow, rgb(21 112 239 / 0.3));
+}
+
+html[data-theme="clear-blue"] .stat-band > * {
+  padding: 20px 22px;
+}
+
+html[data-theme="clear-blue"] .stat-band {
+  gap: 24px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-theme="clear-blue"] .stat-band > * {
+  --tint: rgb(21 112 239 / 0.13);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background-image: radial-gradient(circle at 100% 0, var(--tint), transparent 62%);
+  box-shadow: var(--surface-lift);
+}
+
+html[data-theme="clear-blue"] .stat-band > :nth-child(5n + 2) {
+  --tint: rgb(14 159 142 / 0.14);
+}
+
+html[data-theme="clear-blue"] .stat-band > :nth-child(5n + 3) {
+  --tint: rgb(122 90 248 / 0.13);
+}
+
+html[data-theme="clear-blue"] .stat-band > :nth-child(5n + 4) {
+  --tint: rgb(247 144 9 / 0.14);
+}
+
+html[data-theme="clear-blue"] .stat-band > :nth-child(5n + 5) {
+  --tint: rgb(217 45 32 / 0.1);
+}
+
+html[data-theme="clear-blue"] .stat-band .headline {
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+html[data-theme="clear-blue"] .ai-surface {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(#f8faff, #f8faff) padding-box,
+    var(--ai-border) border-box;
+  box-shadow: 0 10px 28px rgb(84 80 220 / 0.1);
+}
+
+html[data-theme="clear-blue"] .primary-glow {
+  background-image: var(--primary-sheen);
+  box-shadow: 0 6px 16px var(--primary-glow, rgb(21 112 239 / 0.28));
+}
+
+html[data-theme="clear-blue"] .primary-glow:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+html[data-theme="clear-blue"] .hero-page {
+  background: var(--hero-deep);
+}
+
+/*
+ * Green: a success-green palette on a pure white background. It redefines the same tokens as
+ * Blue. It's chosen from the palette menu in the top bar (lib/theme.ts).
+ * Text values meet 4.5:1 on the surfaces they sit on.
+ */
+html[data-theme="clear-blue"][data-palette="green"] {
+  --color-page: #ffffff;
+  --color-canvas: #f2faf5;
+  --color-surface-sunken: #f5fbf7;
+  --color-border: rgb(8 60 35 / 0.1);
+  --color-border-strong: rgb(8 60 35 / 0.2);
+  --color-grid: rgb(8 60 35 / 0.07);
+
+  --color-ink-900: #0a2015;
+  --color-ink-700: #3f5249;
+  --color-ink-500: #4f6359;
+  --color-ink-400: #58695f;
+
+  --color-sidebar: #f2faf5;
+  --color-sidebar-ink: #0a2015;
+  --color-sidebar-muted: #3f5249;
+  --color-sidebar-faint: #58695f;
+  --color-sidebar-hover: #e1f5e9;
+  --color-sidebar-border: rgb(8 60 35 / 0.1);
+  --color-nav-active: #08844a;
+  --color-topbar: #ffffff;
+
+  --color-accent: #067a42;
+  --color-accent-hover: #05602f;
+  --color-accent-tint: rgb(8 132 74 / 0.1);
+  --color-accent-fill: #08844a;
+  --color-accent-fill-hover: #067a42;
+  --color-accent-fill-pressed: #05602f;
+
+  --color-healthy: #05693b;
+  --color-healthy-bg: rgb(18 183 106 / 0.13);
+  --color-healthy-dot: #12b76a;
+  --color-available: #0b6b80;
+  --color-available-bg: rgb(14 116 144 / 0.1);
+  --color-available-dot: #0e8fa8;
+
+  --color-draft: #f5fbf7;
+  --color-draft-rule: #6ce0a0;
+  --color-brass: #067a42;
+
+  --color-series-1: #0a9150;
+  --color-series-2: #7a5af8;
+  --color-series-3: #0e9fc4;
+  --color-series-4: #c4679b;
+  --color-chart-evergreen: #0a9150;
+  --color-chart-sage: #0e9fc4;
+  --color-chart-sand: #a6e4c1;
+
+  --shadow-focus: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-accent-hover);
+  --shadow-focus-dark: 0 0 0 2px var(--color-sidebar), 0 0 0 4px var(--color-accent-fill);
+
+  --hero-deep: linear-gradient(120deg, #04210f 0%, #0a4d2c 45%, #0a7446 80%, #0b7d55 112%);
+  --primary-sheen: linear-gradient(135deg, #0d9a57 0%, #067a42 100%);
+  --ai-border: linear-gradient(120deg, #08844a 0%, #0e9fc4 55%, #12b76a 100%);
+  --surface-lift: 0 1px 1px rgb(8 60 35 / 0.04), 0 18px 44px -12px rgb(8 60 35 / 0.14);
+  --nav-active-rule: 0 8px 18px rgb(8 132 74 / 0.3);
+  --primary-glow: rgb(8 132 74 / 0.3);
+  --hero-ink: #04210f;
+  --room-glow: #0c5a35;
+  --room-deep: #04210f;
+}
+
+html[data-theme="clear-blue"][data-palette="green"] .page-hero {
+  --color-accent: #b4f0cd;
+  --color-brass: #b4f0cd;
+  box-shadow: 0 26px 60px -18px rgb(4 33 15 / 0.5);
+}
+
+html[data-theme="clear-blue"][data-palette="green"] .page-hero::after {
+  background: radial-gradient(circle, rgb(108 224 160 / 0.28), transparent 68%);
+}
+
+html[data-theme="clear-blue"][data-palette="green"]
+  .page-hero
+  :is([class*="rounded-control"], .on-light) {
+  --color-ink-900: #0a2015;
+  --color-ink-700: #3f5249;
+  --color-ink-500: #4f6359;
+  --color-ink-400: #58695f;
+  --color-accent: #067a42;
+  --color-brass: #067a42;
+  --color-border: rgb(8 60 35 / 0.1);
+}
+
+html[data-theme="clear-blue"][data-palette="green"] .page-hero .bg-accent-tint:not(.on-light *) {
+  color: #067a42;
+}
+
+html[data-theme="clear-blue"][data-palette="green"] .stat-band > * {
+  --tint: rgb(8 132 74 / 0.13);
+}
+
+html[data-theme="clear-blue"][data-palette="green"] .stat-band > :nth-child(5n + 2) {
+  --tint: rgb(14 159 196 / 0.12);
+}
+
+html[data-theme="clear-blue"][data-palette="green"] .ai-surface {
+  background:
+    linear-gradient(#f8fcfa, #f8fcfa) padding-box,
+    var(--ai-border) border-box;
+  box-shadow: 0 10px 28px rgb(8 132 74 / 0.1);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-theme="clear-blue"] :is(.page-hero, .stat-band > *) {
+    animation: rise-in 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  html[data-theme="clear-blue"] .stat-band > :nth-child(2) {
+    animation-delay: 50ms;
+  }
+
+  html[data-theme="clear-blue"] .stat-band > :nth-child(3) {
+    animation-delay: 100ms;
+  }
+
+  html[data-theme="clear-blue"] .stat-band > :nth-child(n + 4) {
+    animation-delay: 150ms;
+  }
+}
+
 @layer base {
   html {
-    background-color: var(--color-canvas);
+    background-color: var(--color-page);
   }
 
   body {
-    background-color: var(--color-canvas);
+    background-color: var(--color-page);
     color: var(--color-ink-900);
     font-family: var(--font-sans);
     font-size: var(--text-body);
@@ -152,13 +586,27 @@
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
   color: var(--color-ink-500);
 }
 
 @utility headline {
   font-family: var(--font-serif);
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-weight: var(--headline-weight);
+  letter-spacing: var(--headline-tracking);
+}
+
+/* Lifts a white card off the white page. */
+@utility surface-lift {
+  box-shadow: var(--surface-lift);
+}
+
+@utility nav-active-rule {
+  background-image: var(--primary-sheen);
+  box-shadow: var(--nav-active-rule);
+}
+
+@utility hero-wash {
+  background-image: var(--hero-wash);
 }

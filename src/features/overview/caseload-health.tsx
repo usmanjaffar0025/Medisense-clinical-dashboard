@@ -18,7 +18,7 @@ import { cn } from "@/lib/cn";
 type Filter = "all" | CaseloadStatus;
 
 const COLUMNS =
-  "minmax(0,1.4fr) minmax(100px,1fr) 80px 52px 72px 86px minmax(84px,0.9fr) 40px 104px";
+  "minmax(112px,1.4fr) minmax(96px,1fr) 76px 44px 76px 84px minmax(72px,0.8fr) 44px 88px";
 
 const DETAIL_HREF: Record<string, string> = {
   "sarah-thompson": "/caseloads/sarah-thompson",
@@ -30,7 +30,15 @@ const statusColour: Record<CaseloadStatus, string> = {
   healthy: colour.accent,
 };
 
-export function CaseloadHealth({ list, period }: { list: Clinician[]; period: number }) {
+export function CaseloadHealth({
+  list,
+  period,
+  previous,
+}: {
+  list: Clinician[];
+  period: number;
+  previous?: Map<string, Clinician>;
+}) {
   const [filter, setFilter] = useState<Filter>("all");
   const counts = statusCounts(list);
   const rows = [...list]
@@ -60,14 +68,14 @@ export function CaseloadHealth({ list, period }: { list: Clinician[]; period: nu
           options={[
             { id: "all", label: "All", count: counts.all },
             { id: "at-risk", label: "At Risk", count: counts["at-risk"] },
-            { id: "monitor", label: "Monitor", count: counts.monitor },
+            { id: "monitor", label: "Watch", count: counts.monitor },
             { id: "healthy", label: "Healthy", count: counts.healthy },
           ]}
         />
       </div>
 
       <div className="overflow-x-auto" role="table" aria-label="Caseload health by clinician">
-        <div className="min-w-210">
+        <div className="min-w-200">
           <TableHeader columns={COLUMNS} className="px-3">
             <div>Clinician</div>
             <div>Capacity</div>
@@ -119,6 +127,12 @@ export function CaseloadHealth({ list, period }: { list: Clinician[]; period: nu
                 <Complexity level={c.complexity} note={`${c.highComplexity} high`} />
                 <div className="text-right">
                   <div>{c.notesDue}</div>
+                  {previous?.get(c.id)?.notesDue !== undefined &&
+                    previous.get(c.id)?.notesDue !== c.notesDue && (
+                      <div className="text-caption text-ink-500">
+                        was {previous.get(c.id)?.notesDue}
+                      </div>
+                    )}
                   {c.draftsAwaiting > 0 && (
                     <div className="text-caption text-brass">{c.draftsAwaiting} draft</div>
                   )}
@@ -135,7 +149,15 @@ export function CaseloadHealth({ list, period }: { list: Clinician[]; period: nu
                   height={30}
                   unit="score"
                 />
-                <div className="text-right font-serif text-figure">{c.score}</div>
+                <div className="text-right font-serif text-figure">
+                  {c.score}
+                  {previous?.get(c.id)?.score !== undefined &&
+                    previous.get(c.id)?.score !== c.score && (
+                      <div className="font-sans text-caption font-medium text-ink-500">
+                        was {previous.get(c.id)?.score}
+                      </div>
+                    )}
+                </div>
                 <div className="flex flex-wrap gap-1">
                   <StatusTag status={c.status} />
                   {c.available && <Tag tone="available">Available</Tag>}

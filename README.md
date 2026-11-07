@@ -15,29 +15,35 @@ Open http://localhost:3000. The demo is designed for a 1440 × 900 desktop windo
 
 ## Screens
 
-| Route                            | Screen                               |
-| -------------------------------- | ------------------------------------ |
-| `/`                              | Leadership overview                  |
-| `/caseloads/sarah-thompson`      | Clinician caseload detail            |
-| `/case-notes/[caseId]`           | AI case notes: 5 cases, voice, SOAP  |
-| `/clients-requiring-attention`   | Clients requiring attention          |
-| `/supervision/sarah-thompson`    | Supervision dashboard                |
-| `/team-capacity`                 | Team capacity and caseload balancing |
-| `/admin-insights`                | Admin reduction and AI opportunities |
-| `/progress-reports/emily-carter` | AI progress report generator         |
-| `/my-day`                        | Clinician home                       |
-| `/intake`                        | Referrals and AI intake extraction   |
-| `/forms`                         | Smart forms pre-filled from records  |
-| `/tasks`                         | Tasks, follow-ups and escalations    |
-| `/clients`                       | Client directory with filters        |
-| `/clients/[clientId]`            | Client profile, goals and funding    |
-| `/schedule`                      | Team week, team day, AI suggestions  |
-| `/reports`                       | Reports library and AI drafts        |
-| `/admin-operations`              | Admin queues, expiries, compliance   |
-| `/automations`                   | Automation rules and rule builder    |
-| `/analytics`                     | Outcomes, sessions and access trends |
-| `/portal`                        | Family portal preview (Emily Carter) |
-| `/settings`                      | Roles, AI guardrails, integrations   |
+| Route                             | Screen                               |
+| --------------------------------- | ------------------------------------ |
+| `/`                               | Leadership overview                  |
+| `/caseloads/sarah-thompson`       | Clinician caseload detail            |
+| `/case-notes/[caseId]`            | AI case notes: 5 cases, voice, SOAP  |
+| `/clients-requiring-attention`    | Clients requiring attention          |
+| `/supervision/sarah-thompson`     | Supervision dashboard                |
+| `/team-capacity`                  | Team capacity and caseload balancing |
+| `/admin-insights`                 | Admin reduction and AI opportunities |
+| `/progress-reports/emily-carter`  | AI progress report generator         |
+| `/my-day`                         | Sarah's day, in visit order          |
+| `/sessions/oliver-grant`          | AI session note: dictate and approve |
+| `/sessions/oliver-grant/prepared` | What AI prepared from the note       |
+| `/admin-queue`                    | Admin work queue and exceptions      |
+| `/since-yesterday`                | What rules did overnight             |
+| `/before-after`                   | What changed, why, and audit links   |
+| `/roadmap`                        | Future modules, all planned          |
+| `/intake`                         | Referrals and AI intake extraction   |
+| `/forms`                          | Smart forms pre-filled from records  |
+| `/tasks`                          | Tasks, follow-ups and escalations    |
+| `/clients`                        | Client directory with filters        |
+| `/clients/[clientId]`             | Client profile, goals and funding    |
+| `/schedule`                       | Team week, team day, AI suggestions  |
+| `/reports`                        | Reports library and AI drafts        |
+| `/admin-operations`               | Admin queues, expiries, compliance   |
+| `/automations`                    | Automation rules and rule builder    |
+| `/analytics`                      | Outcomes, sessions and access trends |
+| `/portal`                         | Family portal preview (Emily Carter) |
+| `/settings`                       | Roles, AI guardrails, integrations   |
 
 ## Demo walkthrough (10 minutes, six steps)
 
@@ -49,6 +55,45 @@ Open http://localhost:3000. The demo is designed for a 1440 × 900 desktop windo
 6. **Team capacity** — the suggestion to review rebalancing towards Emma, with continuity of care. _Preview scenario_ shows the effect; nothing is ever reassigned automatically.
 
 Every approval, edit and assignment is written to the audit trail (clock icon in the top bar). Demo progress persists for the browser tab; use _Reset demo_ in the audit trail to start again.
+
+## The connected story
+
+Press **Ctrl + Shift + .** for the presenter panel, which switches roles, advances the day, shows AI status and resets the demo.
+
+1. **Neil:** the Overview flags Sarah as At Risk. Open her caseload to see why.
+2. **Sarah:** in My Day, choose **Write note with AI**, dictate or use the sample, then **Write note with AI**. Edit a line and **Approve note**.
+3. **What AI prepared:** review the report and form, and **Confirm task** for the admin team.
+4. **Jo:** the task is in the work queue, along with a failed form sync to retry.
+5. **Presenter:** **Advance 1 day**. A reminder fires and Isla Murphy's call-back escalates to Grace.
+6. **Grace:** the AI supervision brief has updated. **Approve brief**.
+7. **Neil:** the numbers have changed. Open **See before and after**.
+
+## Client intake to first visit
+
+Anyone can add a client from **+ New** in the top bar, from **Clients**, or from the **Clients** tab in the Staff app.
+
+1. **AI referrals:** click **New referral**, then **Use sample referral** and **Read referral with AI**. Check the extracted details against the source lines.
+2. Click **Verify & create client**, correct anything in the form, then create the client.
+3. Click **Book first visit**. Double-booking is blocked, and the next free time is offered.
+4. On **Schedule** or the client's page, open the visit and click **Mark session complete**. A note task goes to the clinician.
+
+## Family portal
+
+Open **Family Portal**, then **Open family sign-in** (or go to `/family`), and use **Use demo family details**. This is a demo gate, not real authentication.
+
+## Moving around
+
+Use the sidebar for screens, and the name in the top bar to switch between the Director, Therapist, Admin and Supervisor workspaces. On a phone, **More** lists every screen.
+
+## Roadmap screens
+
+These work in the browser on sample data; nothing connects to a live outside system yet.
+
+- **Staff app** (`/mobile/staff`): today, schedule, clients (add, edit, book), tasks and AI notes with dictation. Offline mode is simulated.
+- **Family app** (`/mobile/family`): visits, change requests, home practice, progress, messages and documents.
+- **Telehealth** (`/telehealth`): the visit room with client details, chat, a real local camera preview and an AI note. There's no video link to the client yet.
+- **Billing and claims** (`/billing`): claim lines from completed sessions, held back until the note is approved. Rates are sample values, and nothing is sent.
+- **Hospital operations** (`/hospital`) and **ERP** (`/erp`): sample records with working decisions.
 
 ## Live AI (any of four providers)
 

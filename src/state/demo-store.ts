@@ -7,15 +7,33 @@ import { caseNoteById, caseNotes, noteText } from "@/data/case-note";
 import { portalFamily, portalSettings, type PortalSettingId } from "@/data/portal";
 import { libraryReports, type ReportStatus } from "@/data/reports-library";
 import { aiGuardrails, integrations, permissions } from "@/data/settings";
-import { scheduleSuggestions } from "@/data/schedule";
+import { clinicians } from "@/data/clinicians";
+import { formatTime, scheduleDays, scheduleSuggestions, type ScheduleItem } from "@/data/schedule";
 import { suggestedAgenda } from "@/data/supervision";
 import { formDraftById, formDrafts } from "@/data/forms";
-import { referralById, referrals, type ReferralStatus } from "@/data/referrals";
-import { seedTasks, type SuggestedTask, type Task } from "@/data/tasks";
+import { referralById, referrals, type Referral, type ReferralStatus } from "@/data/referrals";
+import { clientRecord, findDuplicate, type ClientEdits, type ClientRecord } from "@/data/records";
+import { adminTeam } from "@/data/story";
+import {
+  ESCALATE_AFTER_DAYS,
+  escalationOwner,
+  seedTasks,
+  type SuggestedTask,
+  type Task,
+} from "@/data/tasks";
 import type { AuditEntry } from "@/data/types";
 import type { Role } from "@/lib/navigation";
 import type { StructuredNote } from "@/lib/ai/case-note-contract";
-import { dt } from "@/lib/clock";
+import { dt, isoDate, nextWorkingDayGap, workingDayLabel } from "@/lib/clock";
+import {
+  allSentences,
+  type AiMeta,
+  type NoteSectionId,
+  type Prepared,
+  type SessionNote,
+} from "@/lib/story/types";
+import { roleUsers } from "@/lib/navigation";
+import { initialStory, storyTaskId, type StoryEvent, type StoryState, type Notice } from "./story";
 
 export type CaseNoteMode = "empty" | "generating" | "draft" | "edit" | "approved";
 
@@ -94,6 +112,18 @@ type DemoState = {
   myDayFollowUpDone: boolean;
   tasks: Task[];
   referrals: Record<string, ReferralStatus>;
+  /** Referrals pasted in during the demo and read by AI. */
+  addedReferrals: Referral[];
+  addedClients: ClientRecord[];
+  clientEdits: ClientEdits;
+  /** Visits booked during the demo. */
+  bookings: ScheduleItem[];
+  /** Visits marked complete or cancelled during the demo. */
+  visitChanges: Record<string, ScheduleItem["status"]>;
+  familySignedIn: boolean;
+  /** Decisions on the billing, hospital, ERP, telehealth and mobile screens, by "area:id". */
+  ops: Record<string, string>;
+  portalHomeDone: string[];
   forms: Record<string, FormState>;
   /** Schedule suggestions the presenter accepted or dismissed. */
   suggestions: Record<string, "accepted" | "dismissed">;
@@ -112,6 +142,9 @@ type DemoState = {
   /** The role view the presenter picked; drives the sidebar and the assistant. */
   role: Role;
   audit: AuditEntry[];
+  story: StoryState;
+  /** Not persisted: whether the audit drawer is open. */
+  auditOpen: boolean;
 };
 
 type DemoActions = {
@@ -137,7 +170,17 @@ type DemoActions = {
   createTasksFromNote: (id: string, tasks: SuggestedTask[]) => void;
   completeTask: (taskId: string) => void;
   requestReferralInfo: (id: string) => void;
-  verifyReferral: (id: string) => void;
+  addReferral: (referral: Referral, status: ReferralStatus) => void;
+  clearDuplicate: (id: string) => void;
+  verifyReferral: (id: string, client: ClientRecord) => void;
+  addClient: (client: ClientRecord) => void;
+  updateClient: (id: string, patch: Partial<ClientRecord>) => void;
+  bookVisit: (visit: Omit<ScheduleItem, "id" | "status">) => void;
+  completeVisit: (visit: ScheduleItem) => void;
+  cancelVisit: (visit: ScheduleItem) => void;
+  setFamilySignedIn: (signedIn: boolean) => void;
+  setOp: (key: string, value: string, action?: string, object?: string) => void;
+  togglePortalHome: (id: string) => void;
   mergeReferral: (id: string) => void;
   setFormValue: (formId: string, fieldId: string, value: string) => void;
   submitForm: (formId: string) => void;
@@ -155,6 +198,33 @@ type DemoActions = {
   connectIntegration: (id: string) => void;
   setRole: (role: Role) => void;
   resetDemo: () => void;
+  setAuditOpen: (open: boolean) => void;
+  setTranscript: (text: string) => void;
+  finishDictation: () => void;
+  beginSessionNote: () => void;
+  completeSessionNote: (note: SessionNote, meta: AiMeta) => void;
+  failSessionNote: (error: string) => void;
+  editSentence: (section: NoteSectionId, id: string, text: string) => void;
+  addToPlan: (promptId: string, text: string) => void;
+  handlePrompt: (promptId: string) => void;
+  approveSessionNote: () => void;
+  reopenSessionNote: () => void;
+  completePrepare: (prepared: Prepared, meta: AiMeta) => void;
+  setTaskOwner: (id: string, owner: string) => void;
+  confirmStoryTask: (id: string) => void;
+  dismissStoryTask: (id: string) => void;
+  restoreStoryTask: (id: string) => void;
+  editReportSection: (name: string, text: string) => void;
+  approveStoryReport: () => void;
+  setStoryFormValue: (id: string, value: string) => void;
+  approveStoryForm: () => void;
+  reassignTask: (taskId: string, owner: string) => void;
+  advanceDay: () => void;
+  advanceToReminder: () => void;
+  markNoticesRead: (role: Role) => void;
+  cacheAi: (key: string, kind: string, data: unknown, meta: AiMeta) => void;
+  approveBrief: (key: string) => void;
+  resetStoryNote: () => void;
 };
 
 const initialState: DemoState = {
@@ -179,13 +249,22 @@ const initialState: DemoState = {
   myDayFollowUpDone: false,
   tasks: seedTasks,
   referrals: Object.fromEntries(referrals.map((r) => [r.id, r.status])),
+  addedReferrals: [],
+  addedClients: [],
+  clientEdits: {},
+  bookings: [],
+  visitChanges: {},
+  familySignedIn: false,
+  ops: {},
+  portalHomeDone: ["hp1"],
+  // Ava's form starts with a failed sync, so the work queue opens with a real exception to clear.
   forms: Object.fromEntries(
     formDrafts.map((f) => [
       f.id,
       {
         values: Object.fromEntries(f.fields.map((field) => [field.id, field.value])),
-        status: "draft",
-        attempts: 0,
+        status: f.failFirstSubmission ? "error" : "draft",
+        attempts: f.failFirstSubmission ? 1 : 0,
       } satisfies FormState,
     ]),
   ),
@@ -205,12 +284,24 @@ const initialState: DemoState = {
   connected: integrations.filter((i) => i.status === "Connected").map((i) => i.id),
   role: "Leadership",
   audit: initialAuditEntries,
+  story: initialStory,
+  auditOpen: false,
 };
 
-function entry(id: string, time: string, actor: string, action: string, object: string) {
+let entryCount = 0;
+
+function entry(
+  id: string,
+  time: string,
+  actor: string,
+  action: string,
+  object: string,
+  day = dt("2026-10-20"),
+) {
+  entryCount += 1;
   return {
-    id: `${id}-${Date.now()}`,
-    day: dt("2026-10-20"),
+    id: `${id}-${Date.now()}-${entryCount}`,
+    day,
     time,
     actor,
     isAi: actor === "Medisense AI",
@@ -282,10 +373,6 @@ export const useDemoStore = create<DemoState & DemoActions>()(
       completeGeneration: (id, note, generation) =>
         set((s) => {
           const regenerated = Boolean(s.caseNotes[id]?.generation);
-          const via =
-            generation.source === "live"
-              ? ` (live · ${generation.model ?? "Claude"})`
-              : " (prepared draft)";
           return {
             caseNotes: patchNote(s.caseNotes, id, () => ({
               mode: "draft",
@@ -302,7 +389,7 @@ export const useDemoStore = create<DemoState & DemoActions>()(
                   id,
                 ),
                 "Medisense AI",
-                `${regenerated ? "Regenerated" : "Generated"} draft summary${via}`,
+                `${regenerated ? "Regenerated" : "Generated"} draft summary`,
                 noteObject(id),
               ),
               ...s.audit,
@@ -532,10 +619,176 @@ export const useDemoStore = create<DemoState & DemoActions>()(
           ],
         })),
 
-      verifyReferral: (id) =>
+      addReferral: (referral, status) =>
+        set((s) => ({
+          addedReferrals: [referral, ...s.addedReferrals],
+          referrals: { ...s.referrals, [referral.id]: status },
+          audit: [
+            entry(
+              "referral-read",
+              "10:20",
+              "Medisense AI",
+              "Read a new referral and drafted its details for review",
+              `Referral · ${referral.client}`,
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      clearDuplicate: (id) =>
         set((s) => {
-          const referral = referralById(id);
+          const referral = referralById(id) ?? s.addedReferrals.find((r) => r.id === id);
+          return {
+            referrals: { ...s.referrals, [id]: "Needs verification" },
+            audit: [
+              entry(
+                "referral-not-duplicate",
+                "10:21",
+                roleUsers[s.role].name,
+                "Confirmed the referral is a different person, not a duplicate",
+                `Referral · ${referral?.client ?? id}`,
+              ),
+              ...s.audit,
+            ],
+          };
+        }),
+
+      addClient: (client) =>
+        set((s) => ({
+          addedClients: [client, ...s.addedClients],
+          audit: [
+            entry(
+              "client-created",
+              "10:21",
+              roleUsers[s.role].name,
+              "Created client record",
+              client.name,
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      updateClient: (id, patch) =>
+        set((s) => {
+          const name = clientRecord(id, s.addedClients, s.clientEdits)?.name ?? id;
+          return {
+            clientEdits: { ...s.clientEdits, [id]: { ...s.clientEdits[id], ...patch } },
+            audit: [
+              entry(
+                "client-edited",
+                "10:22",
+                roleUsers[s.role].name,
+                "Updated client details",
+                name,
+              ),
+              ...s.audit,
+            ],
+          };
+        }),
+
+      bookVisit: (visit) =>
+        set((s) => {
+          const id = `booked-${s.bookings.length + 1}-${visit.clinicianId}-${visit.day}-${visit.start}`;
+          const referral = [...s.addedReferrals, ...referrals].find(
+            (r) => r.client === visit.title,
+          );
+          const closeTask = referral ? `t-first-visit-${referral.id}` : null;
+          const when = `${scheduleDays[visit.day]?.label ?? ""}, ${formatTime(visit.start)}`;
+          const firstVisit =
+            referral &&
+            (s.referrals[referral.id] === "Profile created" ||
+              s.referrals[referral.id] === "First visit booked");
+          return {
+            bookings: [...s.bookings, { ...visit, id, status: "booked" as const }],
+            referrals: firstVisit
+              ? { ...s.referrals, [referral.id]: "First visit booked" as const }
+              : s.referrals,
+            tasks: s.tasks.map((t) => (t.id === closeTask ? { ...t, done: true } : t)),
+            audit: [
+              entry(
+                "visit-booked",
+                "10:23",
+                roleUsers[s.role].name,
+                `Booked ${visit.type.toLowerCase()} for ${when}`,
+                visit.title,
+              ),
+              ...s.audit,
+            ],
+          };
+        }),
+
+      completeVisit: (visit) =>
+        set((s) => {
+          const owner = clinicians.find((c) => c.id === visit.clinicianId)?.name ?? "Admin team";
+          const note: Task = {
+            id: `t-note-${visit.id}`,
+            title: "Write session note",
+            client: visit.title,
+            owner,
+            due: scheduleDays[Math.min(visit.day + 1, scheduleDays.length - 1)]?.label ?? "",
+            daysOverdue: -1,
+            priority: "Medium",
+            type: "Documentation",
+            source: "Automation",
+            done: false,
+            href: "/schedule",
+          };
+          return {
+            visitChanges: { ...s.visitChanges, [visit.id]: "completed" },
+            tasks: [note, ...s.tasks.filter((t) => t.id !== note.id)],
+            audit: [
+              entry(
+                "visit-completed",
+                "10:24",
+                roleUsers[s.role].name,
+                `Marked ${visit.type.toLowerCase()} complete; note task created for ${owner}`,
+                visit.title,
+              ),
+              ...s.audit,
+            ],
+          };
+        }),
+
+      cancelVisit: (visit) =>
+        set((s) => ({
+          visitChanges: { ...s.visitChanges, [visit.id]: "cancelled" },
+          audit: [
+            entry(
+              "visit-cancelled",
+              "10:24",
+              roleUsers[s.role].name,
+              `Cancelled ${visit.type.toLowerCase()}; the slot is open again`,
+              visit.title,
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      setFamilySignedIn: (signedIn) => set({ familySignedIn: signedIn }),
+
+      setOp: (key, value, action, object) =>
+        set((s) => ({
+          ops: { ...s.ops, [key]: value },
+          audit: action
+            ? [
+                entry("operation", "10:30", roleUsers[s.role].name, action, object ?? ""),
+                ...s.audit,
+              ]
+            : s.audit,
+        })),
+
+      togglePortalHome: (id) =>
+        set((s) => ({
+          portalHomeDone: s.portalHomeDone.includes(id)
+            ? s.portalHomeDone.filter((x) => x !== id)
+            : [...s.portalHomeDone, id],
+        })),
+
+      verifyReferral: (id, client) =>
+        set((s) => {
+          const referral = referralById(id) ?? s.addedReferrals.find((r) => r.id === id);
           if (!referral) return {};
+          const existing = clientRecord(client.id, s.addedClients, s.clientEdits);
           const firstVisit: Task = {
             id: `t-first-visit-${id}`,
             title: "Book first home visit",
@@ -551,6 +804,13 @@ export const useDemoStore = create<DemoState & DemoActions>()(
           };
           return {
             referrals: { ...s.referrals, [id]: "Profile created" },
+            addedClients: existing ? s.addedClients : [client, ...s.addedClients],
+            clientEdits: existing
+              ? {
+                  ...s.clientEdits,
+                  [existing.id]: { ...s.clientEdits[existing.id], ...client, id: existing.id },
+                }
+              : s.clientEdits,
             tasks: [firstVisit, ...s.tasks.filter((t) => t.id !== firstVisit.id)],
             audit: [
               entry(
@@ -566,19 +826,36 @@ export const useDemoStore = create<DemoState & DemoActions>()(
         }),
 
       mergeReferral: (id) =>
-        set((s) => ({
-          referrals: { ...s.referrals, [id]: "Merged" },
-          audit: [
-            entry(
-              "referral-merged",
-              demoActionTimes.referralVerified,
-              "Admin team",
-              "Added requested service to the existing client profile (duplicate avoided)",
-              `Referral · ${referralById(id)?.client ?? id}`,
-            ),
-            ...s.audit,
-          ],
-        })),
+        set((s) => {
+          const referral = referralById(id) ?? s.addedReferrals.find((r) => r.id === id);
+          const existing = referral?.duplicate
+            ? findDuplicate(referral.duplicate.client, s.addedClients)
+            : null;
+          const current = existing && clientRecord(existing.id, s.addedClients, s.clientEdits);
+          return {
+            referrals: { ...s.referrals, [id]: "Merged" },
+            clientEdits:
+              existing && current && referral && !current.service.includes(referral.services)
+                ? {
+                    ...s.clientEdits,
+                    [existing.id]: {
+                      ...s.clientEdits[existing.id],
+                      service: `${current.service}, ${referral.services}`,
+                    },
+                  }
+                : s.clientEdits,
+            audit: [
+              entry(
+                "referral-merged",
+                demoActionTimes.referralVerified,
+                "Admin team",
+                "Added requested service to the existing client profile (duplicate avoided)",
+                `Referral · ${referral?.client ?? id}`,
+              ),
+              ...s.audit,
+            ],
+          };
+        }),
 
       setFormValue: (formId, fieldId, value) =>
         set((s) => {
@@ -858,10 +1135,427 @@ export const useDemoStore = create<DemoState & DemoActions>()(
       setRole: (role) => set({ role }),
 
       resetDemo: () => set((s) => ({ ...initialState, role: s.role })),
+
+      setAuditOpen: (open) => set({ auditOpen: open }),
+
+      setTranscript: (text) =>
+        set((s) => ({ story: { ...s.story, transcript: text, error: null } })),
+
+      finishDictation: () => set((s) => ({ story: { ...s.story, stage: "complete" } })),
+
+      beginSessionNote: () =>
+        set((s) => ({ story: { ...s.story, stage: "generating", error: null } })),
+
+      completeSessionNote: (note, meta) =>
+        set((s) => ({
+          story: {
+            ...s.story,
+            stage: "draft",
+            note,
+            noteMeta: meta,
+            edits: 0,
+            handledPrompts: [],
+            lastAi: { ...meta, kind: "note" },
+          },
+          audit: [
+            entry(
+              "session-note-drafted",
+              "10:42",
+              "Medisense AI",
+              `Wrote draft note from ${note ? allSentences(note).filter((x) => x.line).length : 0} dictated sentences`,
+              `Oliver Grant, session ${dt("20 Oct")}`,
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      failSessionNote: (error) => set((s) => ({ story: { ...s.story, stage: "error", error } })),
+
+      editSentence: (section, id, text) =>
+        set((s) => {
+          const note = s.story.note;
+          if (!note) return {};
+          return {
+            story: {
+              ...s.story,
+              edits: s.story.edits + 1,
+              note: {
+                ...note,
+                sections: {
+                  ...note.sections,
+                  [section]: note.sections[section].map((x) =>
+                    x.id === id ? { ...x, text, edited: true } : x,
+                  ),
+                },
+              },
+            },
+            audit: [
+              entry(
+                "session-note-edited",
+                "10:45",
+                roleUsers[s.role].name,
+                "Edited a line of the AI draft",
+                `Oliver Grant, session ${dt("20 Oct")}`,
+              ),
+              ...s.audit,
+            ],
+          };
+        }),
+
+      addToPlan: (promptId, text) =>
+        set((s) => {
+          const note = s.story.note;
+          if (!note) return {};
+          return {
+            story: {
+              ...s.story,
+              edits: s.story.edits + 1,
+              handledPrompts: [...s.story.handledPrompts, promptId],
+              note: {
+                ...note,
+                sections: {
+                  ...note.sections,
+                  plan: [
+                    ...note.sections.plan,
+                    { id: `added-${promptId}`, text, line: null, edited: true },
+                  ],
+                },
+              },
+            },
+          };
+        }),
+
+      handlePrompt: (promptId) =>
+        set((s) => ({
+          story: { ...s.story, handledPrompts: [...s.story.handledPrompts, promptId] },
+        })),
+
+      approveSessionNote: () =>
+        set((s) => ({
+          story: {
+            ...s.story,
+            stage: "approved",
+            approvedAt: "10:46 am",
+            prepareStatus: "preparing",
+            outdated: false,
+          },
+          caseNotes: patchNote(s.caseNotes, "oliver-grant", () => ({ mode: "approved" })),
+          audit: [
+            entry(
+              "session-note-approved",
+              "10:46",
+              roleUsers[s.role].name,
+              "Approved note",
+              `Oliver Grant, session ${dt("20 Oct")}`,
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      reopenSessionNote: () =>
+        set((s) => ({
+          story: {
+            ...s.story,
+            stage: "draft",
+            approvedAt: null,
+            outdated: s.story.prepared !== null,
+          },
+          caseNotes: patchNote(s.caseNotes, "oliver-grant", () => ({ mode: "empty" })),
+          audit: [
+            entry(
+              "session-note-reopened",
+              "10:47",
+              roleUsers[s.role].name,
+              "Reopened note for editing; prepared items marked out of date",
+              `Oliver Grant, session ${dt("20 Oct")}`,
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      completePrepare: (prepared, meta) =>
+        set((s) => ({
+          story: {
+            ...s.story,
+            prepareStatus: "ready",
+            prepared,
+            preparedMeta: meta,
+            outdated: false,
+            reportStatus: "review",
+            formStatus: "draft",
+            reportEdits: {},
+            formValues: { ...s.story.formValues, reason: prepared.formReason },
+            lastAi: { ...meta, kind: "prepare" },
+            taskChoices: Object.fromEntries(
+              prepared.tasks.map((t) => [t.id, s.story.taskChoices[t.id] ?? "draft"]),
+            ),
+          },
+          audit: [
+            entry(
+              "story-prepared",
+              "10:46",
+              "Medisense AI",
+              `Prepared a report draft, a form and ${prepared.tasks.length} proposed follow-ups (nothing sent)`,
+              `Oliver Grant, session ${dt("20 Oct")}`,
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      setTaskOwner: (id, owner) =>
+        set((s) => ({
+          story: { ...s.story, taskOwners: { ...s.story.taskOwners, [id]: owner } },
+        })),
+
+      confirmStoryTask: (id) =>
+        set((s) => {
+          const proposed = s.story.prepared?.tasks.find((t) => t.id === id);
+          const note = s.story.note;
+          if (!proposed || !note || s.story.taskChoices[id] === "confirmed") return {};
+          const owner = s.story.taskOwners[id] ?? proposed.owner;
+          const sentence = allSentences(note).find((x) => x.id === proposed.sentenceId)?.text;
+          const task: Task = {
+            id: storyTaskId(id),
+            title: proposed.title,
+            client: "Oliver Grant",
+            owner,
+            due: workingDayLabel(s.story.dayOffset, proposed.dueInWorkingDays),
+            daysOverdue: -proposed.dueInWorkingDays,
+            priority: "Medium",
+            type: proposed.type,
+            source: "AI from note",
+            done: false,
+            href: "/sessions/oliver-grant/prepared",
+            sentence,
+          };
+          return {
+            tasks: [task, ...s.tasks.filter((t) => t.id !== task.id)],
+            story: { ...s.story, taskChoices: { ...s.story.taskChoices, [id]: "confirmed" } },
+            audit: [
+              entry(
+                "story-task-confirmed",
+                "10:49",
+                roleUsers[s.role].name,
+                `Confirmed task for ${owner}: ${proposed.title}`,
+                "Oliver Grant",
+              ),
+              ...s.audit,
+            ],
+          };
+        }),
+
+      dismissStoryTask: (id) =>
+        set((s) => ({
+          story: { ...s.story, taskChoices: { ...s.story.taskChoices, [id]: "dismissed" } },
+        })),
+
+      restoreStoryTask: (id) =>
+        set((s) => ({
+          story: { ...s.story, taskChoices: { ...s.story.taskChoices, [id]: "draft" } },
+        })),
+
+      editReportSection: (name, text) =>
+        set((s) => ({
+          story: { ...s.story, reportEdits: { ...s.story.reportEdits, [name]: text } },
+        })),
+
+      approveStoryReport: () =>
+        set((s) => ({
+          story: { ...s.story, reportStatus: "approved" },
+          audit: [
+            entry(
+              "story-report-approved",
+              "10:52",
+              roleUsers[s.role].name,
+              "Approved NDIS progress report",
+              "Oliver Grant",
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      setStoryFormValue: (id, value) =>
+        set((s) => ({
+          story: { ...s.story, formValues: { ...s.story.formValues, [id]: value } },
+        })),
+
+      approveStoryForm: () =>
+        set((s) => ({
+          story: { ...s.story, formStatus: "approved" },
+          audit: [
+            entry(
+              "story-form-approved",
+              "10:54",
+              roleUsers[s.role].name,
+              "Approved further assessment request",
+              "Oliver Grant",
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      reassignTask: (taskId, owner) =>
+        set((s) => {
+          const task = s.tasks.find((t) => t.id === taskId);
+          if (!task || task.owner === owner) return {};
+          return {
+            tasks: s.tasks.map((t) => (t.id === taskId ? { ...t, owner } : t)),
+            audit: [
+              entry(
+                "task-reassigned",
+                demoActionTimes.taskCompleted,
+                roleUsers[s.role].name,
+                `Reassigned to ${owner}: ${task.title}`,
+                task.client,
+              ),
+              ...s.audit,
+            ],
+          };
+        }),
+
+      advanceDay: () =>
+        set((s) => {
+          const dayOffset = s.story.dayOffset + nextWorkingDayGap(s.story.dayOffset);
+          const day = isoDate(dayOffset);
+          const events: StoryEvent[] = [];
+          const tasks = s.tasks.map((t) => {
+            if (t.done) return t;
+            const next = { ...t, daysOverdue: t.daysOverdue + 1 };
+            const base = {
+              id: `${t.id}-${dayOffset}`,
+              taskId: t.id,
+              title: t.title,
+              client: t.client,
+              owner: t.owner,
+              daysLate: next.daysOverdue,
+            };
+            if (next.daysOverdue === 0) events.push({ ...base, kind: "reminder" });
+            if (next.daysOverdue === 1) events.push({ ...base, kind: "overdue" });
+            if (t.daysOverdue <= ESCALATE_AFTER_DAYS && next.daysOverdue > ESCALATE_AFTER_DAYS) {
+              events.push({ ...base, kind: "escalation" });
+            }
+            return next;
+          });
+
+          const roleFor = (owner: string): Role =>
+            owner === "Admin team" || adminTeam.includes(owner)
+              ? "Admin"
+              : owner === roleUsers.Supervisor.name
+                ? "Supervisor"
+                : "Clinician";
+          const notices: Notice[] = events.flatMap((e): Notice[] => {
+            if (e.kind === "reminder") {
+              return [
+                {
+                  id: e.id,
+                  to: roleFor(e.owner),
+                  text: `Due today: ${e.title} (${e.client})`,
+                  href: roleFor(e.owner) === "Admin" ? "/admin-queue" : "/my-day",
+                  read: false,
+                },
+              ];
+            }
+            if (e.kind === "escalation") {
+              return [
+                {
+                  id: e.id,
+                  to: "Supervisor",
+                  text: `Escalated to you: ${e.title} (${e.client}), ${e.daysLate} days late`,
+                  href: "/supervision/sarah-thompson",
+                  read: false,
+                },
+              ];
+            }
+            return [];
+          });
+          if (events.length > 0) {
+            notices.push({
+              id: `summary-${dayOffset}`,
+              to: "Leadership",
+              text: `Overnight: ${events.length} ${events.length === 1 ? "thing" : "things"} moved on their own`,
+              href: "/since-yesterday",
+              read: false,
+            });
+          }
+
+          const label = {
+            reminder: (e: StoryEvent) => `Sent a due-today reminder to ${e.owner}`,
+            overdue: () => "Marked overdue",
+            escalation: (e: StoryEvent) =>
+              `Escalated to ${escalationOwner}, ${e.daysLate} days overdue`,
+          };
+          return {
+            tasks,
+            story: {
+              ...s.story,
+              dayOffset,
+              lastSkip: events,
+              notices: [...notices, ...s.story.notices],
+            },
+            audit: [
+              ...events.map((e) =>
+                entry(
+                  e.kind,
+                  "08:00",
+                  "Automation",
+                  label[e.kind](e),
+                  `${e.client}: ${e.title}`,
+                  day,
+                ),
+              ),
+              ...s.audit,
+            ],
+          };
+        }),
+
+      advanceToReminder: () => {
+        for (let i = 0; i < 5; i += 1) {
+          get().advanceDay();
+          if (get().story.lastSkip.some((e) => e.kind === "reminder")) return;
+        }
+      },
+
+      markNoticesRead: (role) =>
+        set((s) => ({
+          story: {
+            ...s.story,
+            notices: s.story.notices.map((n) => (n.to === role ? { ...n, read: true } : n)),
+          },
+        })),
+
+      cacheAi: (key, kind, data, meta) =>
+        set((s) => ({
+          story: {
+            ...s.story,
+            ai: { ...s.story.ai, [key]: { data, meta } },
+            lastAi: { ...meta, kind },
+          },
+        })),
+
+      approveBrief: (key) =>
+        set((s) => ({
+          story: { ...s.story, briefApprovedKey: key },
+          audit: [
+            entry(
+              "brief-approved",
+              "08:31",
+              roleUsers[s.role].name,
+              "Approved AI supervision brief",
+              `Sarah Thompson, ${dt("22 Oct")}`,
+              isoDate(s.story.dayOffset),
+            ),
+            ...s.audit,
+          ],
+        })),
+
+      resetStoryNote: () =>
+        set((s) => ({
+          story: { ...s.story, stage: "ready", transcript: "", error: null, note: null },
+        })),
     }),
     {
       name: "medisense-demo",
-      version: 7,
+      version: 10,
       // A session saved by an older version starts fresh; only the chosen role view carries over.
       migrate: (persisted) => {
         const role = (persisted as Partial<DemoState> | null)?.role;
@@ -878,6 +1572,14 @@ export const useDemoStore = create<DemoState & DemoActions>()(
         myDayFollowUpDone,
         tasks,
         referrals,
+        addedReferrals,
+        addedClients,
+        clientEdits,
+        bookings,
+        visitChanges,
+        familySignedIn,
+        ops,
+        portalHomeDone,
         forms,
         suggestions,
         reports,
@@ -892,6 +1594,7 @@ export const useDemoStore = create<DemoState & DemoActions>()(
         connected,
         role,
         audit,
+        story,
       }) => ({
         // A request in flight does not survive a reload, so never persist the generating state.
         caseNotes: Object.fromEntries(
@@ -907,6 +1610,14 @@ export const useDemoStore = create<DemoState & DemoActions>()(
         myDayFollowUpDone,
         tasks,
         referrals,
+        addedReferrals,
+        addedClients,
+        clientEdits,
+        bookings,
+        visitChanges,
+        familySignedIn,
+        ops,
+        portalHomeDone,
         forms,
         suggestions,
         reports,
@@ -921,6 +1632,12 @@ export const useDemoStore = create<DemoState & DemoActions>()(
         connected,
         role,
         audit,
+        // A request in flight does not survive a reload either.
+        story: {
+          ...story,
+          stage: story.stage === "generating" ? (story.note ? "draft" : "complete") : story.stage,
+          prepareStatus: story.prepareStatus === "preparing" ? "idle" : story.prepareStatus,
+        },
       }),
     },
   ),

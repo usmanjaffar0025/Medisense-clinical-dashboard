@@ -3,7 +3,6 @@
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { PenNib } from "@/components/ai/provenance";
-import { Button } from "@/components/ui/button";
 import { auditDayLabels } from "@/data/audit";
 import { dt } from "@/lib/clock";
 import type { AuditEntry } from "@/data/types";
@@ -20,7 +19,6 @@ function groupByDay(entries: AuditEntry[]) {
 
 export function AuditDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const audit = useDemoStore((s) => s.audit);
-  const resetDemo = useDemoStore((s) => s.resetDemo);
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -110,12 +108,6 @@ export function AuditDrawer({ open, onClose }: { open: boolean; onClose: () => v
           <span className="text-caption font-medium text-ink-500">
             {audit.length} entries · {dt("19 Oct")} – {dt("20 Oct")}
           </span>
-          <div className="flex gap-2">
-            <Button size="sm" variant="ghost" onClick={resetDemo}>
-              Reset session
-            </Button>
-            <Button size="sm">Export log</Button>
-          </div>
         </div>
       </aside>
     </>

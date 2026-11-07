@@ -149,8 +149,8 @@ ${text}`
           />
           <div className="flex justify-between">
             <Caption>
-              {rawNotes.length} / {MAX_NOTE_CHARS} characters · speech is converted in the browser
-              and audio is not stored
+              {rawNotes.length} / {MAX_NOTE_CHARS} characters · your browser&apos;s speech service
+              turns speech into text
             </Caption>
             {!isSample && (
               <button

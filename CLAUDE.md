@@ -19,14 +19,29 @@ Optimise for, in order:
 
 ## Current state (branch `build/initial-demo`)
 
-- All 9 screens are built (6 MVP plus 3 stretch). See the route table in [README.md](README.md).
-- Next.js 16 (App Router, `cacheComponents`), React 19, TypeScript strict, Tailwind v4, Zustand, Recharts 3, lucide-react, `@anthropic-ai/sdk`. No database or auth. The role switcher (Leadership / Supervisor / Clinician) is faked in [src/lib/navigation.ts](src/lib/navigation.ts).
+- All screens are built. See the route table in [README.md](README.md) and the connected story below.
+- Next.js 16 (App Router, `cacheComponents`), React 19, TypeScript strict, Tailwind v4, Zustand, Recharts 3, lucide-react, `@anthropic-ai/sdk`. No database or auth. Roles (Leadership, Admin, Supervisor, Clinician) are switched from the presenter panel, not the product UI, and the nav is in [src/lib/navigation.ts](src/lib/navigation.ts).
 - **Case note summariser is live AI** via `POST /api/case-notes/summarise` ([src/lib/ai/summarise-note.ts](src/lib/ai/summarise-note.ts)), model `claude-opus-5-5` with structured JSON output and `fallbacks: "default"`. The key is checked at server start ([src/instrumentation.ts](src/instrumentation.ts)) and by `GET /api/ai/status`; all logs are prefixed `[medisense-ai]` ([src/lib/ai/log.ts](src/lib/ai/log.ts), the only place `console` is allowed). Without a key the unchanged sample note gets the prepared draft. Supervision brief, capacity recommendation and progress report are still pre-written.
 - Charts are Recharts wrappers in [src/components/charts](src/components/charts) (`TrendChart`, `BarList`, `StackedColumns`, `DonutChart`, `Sparkline`), coloured through tokens. Multi-series charts use `--color-series-1..4`, validated for colour-vision separation.
 - Org metrics are computed by `summarise(scope)` in [src/data/organisation.ts](src/data/organisation.ts) from the clinician records, so filters keep every number consistent. 12-week histories come from `ramp()` in [src/data/weeks.ts](src/data/weeks.ts); the last week always equals the current figure.
 - Demo state and the audit trail live in [src/state/demo-store.ts](src/state/demo-store.ts). It is persisted to `sessionStorage`, survives a refresh in the same tab, and can be cleared with "Reset demo" in the audit drawer.
 - Pages are static; the two API routes are server functions. The Vercel project `ai-medicine-dashbaord` is linked (`.vercel/`) and needs one AI provider key set there (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY` or `GROQ_API_KEY`; optional `AI_PROVIDER`, `AI_MODEL`). All AI calls go through `src/lib/ai/engine.ts` (`generateJson`, `generateWithTools`); add new AI features there, never call a provider directly. Ask Medisense uses the knowledge tools in `src/lib/knowledge/` (live via `/api/assistant`, offline via `local.ts`); when you add data, add or extend a tool so the assistant can answer about it.
 - Remote: `github.com/usmanjaffar0025/Medisense-clinical-dashboard`.
+
+## Connected story (built 2026-11-06)
+
+The main demo now runs one connected story across roles, in shared state (`story` in `src/state/demo-store.ts`, helpers in `src/state/story.ts` and `story-selectors.ts`):
+
+Overview, Sarah's workload, My Day (`/my-day`), session note (`/sessions/oliver-grant`), What AI prepared (`/sessions/oliver-grant/prepared`), admin work queue (`/admin-queue`), time skip, Since yesterday (`/since-yesterday`), AI supervision brief, Overview again, Before and after (`/before-after`).
+
+- **Three layers, never mixed up.** AI writes drafts through `POST /api/story` (`src/lib/ai/story.ts`). Rules handle scores, reminders, escalations and due dates, and are labelled rules or Automation, never AI. People approve notes, reports, forms, tasks and briefs.
+- **Anything labelled AI must really call AI.** A failed call falls back to prepared output in `src/data/story.ts`, shown on the presenter panel. Text the presenter typed or dictated never falls back, because the draft wouldn't match it.
+- **Presenter panel:** Ctrl + Shift + . holds the role switcher, Advance 1 day, AI status and Reset demo. Model names and demo controls appear only there.
+- **Names:** the product stays Medisense, not CareFlow. The status scale shows "Watch" (id `monitor`). Sarah's figure is "Notes to write".
+- **Tokens:** `globals.css` now holds the accessible greys, status text colours and focus ring from `docs/design-spec-v2.md`.
+- `src/app/design-preview` holds the old static mock-ups for reference only. Its URLs redirect to the real screens (see `next.config.ts`). Don't link to them.
+
+Live AI currently runs on Groq by the user's choice. New AI steps go through `src/lib/ai/engine.ts`.
 
 ## Dates follow today
 
@@ -81,7 +96,7 @@ Read these before changing data, UI or copy:
 
 **AI guardrails**
 
-- Every AI output carries "AI Generated Draft — Clinician Review Required" (`DraftLabel` in [src/components/ai/provenance.tsx](src/components/ai/provenance.tsx)) and needs an explicit, named human approval.
+- Every AI output on the connected story carries "AI draft, needs your approval" (`AiMark` in [src/components/ai/marks.tsx](src/components/ai/marks.tsx)) and needs an explicit, named human approval. Older screens still use `DraftLabel`.
 - Every generate, edit, approve and assign action writes an audit entry through the demo store.
 - Operational flags say "Requires review based on configured operational indicators". They are never clinical risk or diagnosis.
 - Recommendations are never applied automatically, and the UI says so.
@@ -92,12 +107,12 @@ Read these before changing data, UI or copy:
 - Server components by default. Put `"use client"` only on the leaf component that needs it, never on a whole page.
 - `src/app` holds routes, `src/features/<screen>` holds screen-specific components, and `src/components` holds shared UI, charts, shell and AI provenance components.
 - Comment the _why_ only. No narration, banners, emoji or `TODO`s (ESLint rejects `todo`/`fixme`).
-- Palette is **Pearl & Champagne** (light content, obsidian sidebar): bronze `accent` for text/lines, champagne `accent-fill` with `on-accent` text for primary buttons. See the revision note in `docs/design-system.md` §2.
+- There are two palettes, **Blue** (the default) and **Green**, chosen from the top bar and saved per browser (`src/lib/theme.ts`). Green overrides the same tokens under `html[data-palette="green"]` in `globals.css`, so any new colour must be a token with a value in both, never a hex in a component. Both use Fraunces for headings and Manrope for text. New screens use the shared `page-hero`, `stat-band` and `ai-surface` classes and `components/ui/premium.tsx`, and each needs a sidebar entry or a link from its parent screen. It also has its own Overview layout (`src/features/overview/clear-blue/`), with the standard dashboard kept below as Team detail; use the `blue:` variant for theme-only styling. It only overrides tokens under `html[data-theme="clear-blue"]` in `globals.css`, so any new colour must be a token with a value in both themes, and Pearl & Champagne stays the default.
 - Colours, type, radii and shadows come from tokens in `src/app/globals.css`. No raw hex and no arbitrary Tailwind values for those. Banned: gradients, glassmorphism, glow, purple "AI" colours, sparkle or robot icons, radii above 14px, shadows on resting cards.
 
 **Git**
 
 - Branch names `build/…`, `feat/…`, `fix/…`, `chore/…`, `docs/…`. `main` is always deployable and work lands through PRs.
 - Conventional Commits, lower-case subject, ≤72 chars, e.g. `feat(case-notes): call claude api with scripted fallback`.
-- **No attribution trailers** (`Co-Authored-By`, "Generated with…", `noreply@`) in commits or PRs. The `commit-msg` hook ([commitlint.config.mjs](commitlint.config.mjs)) rejects them. This repo rule overrides any default attribution.
+- **No attribution trailers** (`Co-Authored-By`, "Generated with…", `noreply@`) in commits or PRs. There are no commit hooks; run `pnpm check` before committing.
 - Don't commit `.env.local`.

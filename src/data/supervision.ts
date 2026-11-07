@@ -93,7 +93,7 @@ export const flaggedCases = [
   { client: "Daniel Lee", reason: "NDIS plan review approaching; progress report incomplete." },
   {
     client: "Oliver Grant",
-    reason: `New external report received ${dt("14 Oct")}; note overdue 5 days.`,
+    reason: `New external report received ${dt("14 Oct")}, recommending further assessment.`,
   },
   {
     client: "Ruth Hallam",

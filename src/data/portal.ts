@@ -80,6 +80,9 @@ export const portalFamily = {
   ],
 };
 
+/** The fictional family's demo sign-in. This is a demo gate, not real authentication. */
+export const portalLogin = { email: "rachel.carter@example.com", code: "482913" };
+
 /** What the clinic controls about the portal. */
 export const portalSettings = [
   {

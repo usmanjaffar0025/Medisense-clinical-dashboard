@@ -287,6 +287,49 @@ export function scheduleWith(accepted: string[]): ScheduleItem[] {
   });
 }
 
+/** The week as it stands now: accepted suggestions, new bookings and completed or cancelled visits. */
+export function liveSchedule(
+  accepted: string[],
+  bookings: ScheduleItem[],
+  changes: Record<string, ScheduleItem["status"]>,
+): ScheduleItem[] {
+  return [...scheduleWith(accepted), ...bookings].map((item) =>
+    changes[item.id] ? { ...item, status: changes[item.id] as ScheduleItem["status"] } : item,
+  );
+}
+
+/** A rule: the visit already in this clinician's diary at that time, if there is one. */
+export function findClash(
+  items: ScheduleItem[],
+  clinicianId: string,
+  day: number,
+  start: number,
+  duration: number,
+) {
+  return items.find(
+    (i) =>
+      i.clinicianId === clinicianId &&
+      i.day === day &&
+      i.status !== "cancelled" &&
+      start < i.start + i.duration &&
+      i.start < start + duration,
+  );
+}
+
+/** A rule: the earliest half-hour start on that day that fits, or null if the day is full. */
+export function nextFreeStart(
+  items: ScheduleItem[],
+  clinicianId: string,
+  day: number,
+  duration: number,
+  from = DAY_START,
+) {
+  for (let start = Math.max(from, DAY_START); start + duration <= DAY_END; start += 30) {
+    if (!findClash(items, clinicianId, day, start, duration)) return start;
+  }
+  return null;
+}
+
 export function formatTime(minutes: number) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

@@ -20,7 +20,7 @@ export function Segmented<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className="flex gap-0.5 rounded-control border border-border bg-surface-sunken p-0.5"
+      className="flex max-w-full flex-wrap gap-0.5 rounded-control border border-border bg-surface-sunken p-0.5"
     >
       {options.map((o) => (
         <button
@@ -71,7 +71,7 @@ export function SelectField({
 /** One row of filters above the content they scope. */
 export function FilterBar({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-card border border-border bg-surface px-4 py-2.5">
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-card border border-border bg-surface px-4 py-2.5 surface-lift">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">{children}</div>
       {aside && <div className="text-caption font-medium text-ink-500">{aside}</div>}
     </div>
