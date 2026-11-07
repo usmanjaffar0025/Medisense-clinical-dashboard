@@ -6,6 +6,7 @@ import { Caption } from "@/components/ui/card";
 import { followUpDefaults, followUpDueOptions, followUpReasons } from "@/data/attention";
 import type { AttentionClient } from "@/data/types";
 import type { FollowUpAssignment } from "@/state/demo-store";
+import { Select } from "@/components/ui/select";
 
 const fieldLabel = "text-caption font-semibold text-ink-700";
 const input =
@@ -49,7 +50,7 @@ export function AssignFollowUpPopover({
       <div className="grid grid-cols-2 gap-3 px-4.5 pt-3 pb-4">
         <label className="flex flex-col gap-1.5">
           <span className={fieldLabel}>Owner</span>
-          <select
+          <Select
             className={`${input} h-9`}
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
@@ -57,19 +58,19 @@ export function AssignFollowUpPopover({
             {owners.map((a) => (
               <option key={a}>{a}</option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="flex flex-col gap-1.5">
           <span className={fieldLabel}>Due date</span>
-          <select className={`${input} h-9`} value={due} onChange={(e) => setDue(e.target.value)}>
+          <Select className={`${input} h-9`} value={due} onChange={(e) => setDue(e.target.value)}>
             {followUpDueOptions.map((d) => (
               <option key={d}>{d}</option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="col-span-2 flex flex-col gap-1.5">
           <span className={fieldLabel}>Reason</span>
-          <select
+          <Select
             className={`${input} h-9`}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -77,7 +78,7 @@ export function AssignFollowUpPopover({
             {followUpReasons.map((r) => (
               <option key={r}>{r}</option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="col-span-2 flex flex-col gap-1.5">
           <span className={fieldLabel}>Note</span>

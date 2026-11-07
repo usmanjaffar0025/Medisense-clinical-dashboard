@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 const FOCUSABLE = "button, input, select, textarea, a[href]";
 
@@ -53,7 +54,7 @@ export function Sheet({
     };
   }, []);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-40 flex justify-end">
       <button
         type="button"
@@ -90,7 +91,8 @@ export function Sheet({
           </footer>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

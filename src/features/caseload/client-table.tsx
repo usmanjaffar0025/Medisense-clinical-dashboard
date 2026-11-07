@@ -22,7 +22,7 @@ import type {
 } from "@/data/types";
 
 const COLUMNS =
-  "minmax(130px,1.2fr) minmax(160px,1.6fr) 84px 76px 84px 128px 96px minmax(150px,1.3fr) minmax(160px,1.3fr)";
+  "minmax(120px,1.1fr) minmax(120px,1fr) 88px 64px 72px 112px 84px minmax(136px,1.2fr) minmax(168px,1.6fr)";
 
 type Filter = "all" | ClientFilter;
 type Sort = "attention" | "name" | "complexity" | "tenure-asc" | "tenure-desc";
@@ -168,7 +168,7 @@ export function ClientTable({ clients }: { clients: CaseloadClient[] }) {
         role="table"
         aria-label="Sarah Thompson’s clients"
       >
-        <div className="min-w-280">
+        <div className="min-w-268">
           <TableHeader columns={COLUMNS} className="sticky top-0 z-1">
             <div>Client</div>
             <div>Service</div>

@@ -15,6 +15,7 @@ import {
 import type { AiMeta, ReferralExtraction } from "@/lib/story/types";
 import { useDemoStore } from "@/state/demo-store";
 import { callStory } from "@/state/use-story-ai";
+import { Select } from "@/components/ui/select";
 
 const MAX_LENGTH = 8000;
 const sources: ReferralSource[] = [
@@ -137,7 +138,7 @@ export function NewReferralSheet({
     >
       <div className="flex flex-col gap-4">
         <Field label="Where it came from">
-          <select
+          <Select
             className={inputClass}
             value={source}
             onChange={(e) => setSource(e.target.value as ReferralSource)}
@@ -145,7 +146,7 @@ export function NewReferralSheet({
             {sources.map((s) => (
               <option key={s}>{s}</option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label="Referral text" error={error ?? undefined}>
           <textarea

@@ -46,6 +46,7 @@ import { noteSectionTitles, type SessionNote } from "@/lib/story/types";
 import { useDemoStore } from "@/state/demo-store";
 import { callStory } from "@/state/use-story-ai";
 import { AppCard, AppHeader, AppSheet, PhoneFrame } from "./phone-frame";
+import { Select } from "@/components/ui/select";
 
 const OWNER = sarah.name;
 const tabs = [
@@ -409,14 +410,14 @@ function ClientForm({
             />
           </Field>
           <Field label="Funding">
-            <select
+            <Select
               className={inputClass}
               value={form.funding}
               onChange={(e) => set("funding", e.target.value as Funding)}
             >
               <option>NDIS</option>
               <option>Aged care</option>
-            </select>
+            </Select>
           </Field>
         </div>
         <Field
@@ -499,7 +500,7 @@ function BookPanel({ client, onClose }: { client: ClientRecord; onClose: () => v
     >
       <div className="flex flex-col gap-3">
         <Field label="Day">
-          <select
+          <Select
             className={inputClass}
             value={day}
             onChange={(e) => setDay(Number(e.target.value))}
@@ -511,10 +512,10 @@ function BookPanel({ client, onClose }: { client: ClientRecord; onClose: () => v
                   {d.label}
                 </option>
               ))}
-          </select>
+          </Select>
         </Field>
         <Field label="Start time">
-          <select
+          <Select
             className={inputClass}
             value={start}
             onChange={(e) => setStart(Number(e.target.value))}
@@ -524,17 +525,17 @@ function BookPanel({ client, onClose }: { client: ClientRecord; onClose: () => v
                 {formatTime(t)}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label="Type">
-          <select
+          <Select
             className={inputClass}
             value={type}
             onChange={(e) => setType(e.target.value as "Home visit" | "Telehealth")}
           >
             <option>Home visit</option>
             <option>Telehealth</option>
-          </select>
+          </Select>
         </Field>
         {clash && (
           <p role="alert" className="text-small font-medium text-over">

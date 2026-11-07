@@ -17,6 +17,7 @@ import {
   TODAY,
 } from "@/data/schedule";
 import { useDemoStore } from "@/state/demo-store";
+import { Select } from "@/components/ui/select";
 
 const STEP = 15;
 const times = Array.from({ length: (DAY_END - DAY_START) / STEP }, (_, i) => DAY_START + i * STEP);
@@ -59,6 +60,21 @@ export function BookVisitSheet({
     () => nextFreeStart(items, clinicianId, TODAY, 45, NOW + (STEP - (NOW % STEP))) ?? DAY_START,
   );
   const [missingClient, setMissingClient] = useState(false);
+
+  /** Keeps the time on a free slot whenever the clinician, day or length changes. */
+  function refit(next: { clinician?: string; day?: number; duration?: number }) {
+    const who = next.clinician ?? clinicianId;
+    const when = next.day ?? day;
+    const length = next.duration ?? duration;
+    if (next.clinician !== undefined) setClinicianId(who);
+    if (next.day !== undefined) setDay(when);
+    if (next.duration !== undefined) setDuration(length);
+    if (!findClash(items, who, when, start, length) && start + length <= DAY_END) return;
+    const from = when === TODAY ? NOW + (STEP - (NOW % STEP)) : DAY_START;
+    const free =
+      nextFreeStart(items, who, when, length, from) ?? nextFreeStart(items, who, when, length);
+    if (free !== null) setStart(free);
+  }
 
   const clash = findClash(items, clinicianId, day, start, duration);
   const free = clash
@@ -106,7 +122,7 @@ export function BookVisitSheet({
         {!client && (
           <div className="sm:col-span-2">
             <Field label="Client" error={missingClient ? "Choose a client" : undefined}>
-              <select
+              <Select
                 className={inputClass}
                 value={clientId}
                 onChange={(e) => {
@@ -114,7 +130,7 @@ export function BookVisitSheet({
                   setMissingClient(false);
                   const next = clientRecord(e.target.value, added, edits);
                   const owner = clinicianOf(next?.clinician);
-                  if (owner) setClinicianId(owner);
+                  if (owner) refit({ clinician: owner });
                 }}
               >
                 <option value="">Choose a client</option>
@@ -123,40 +139,40 @@ export function BookVisitSheet({
                     {c.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
           </div>
         )}
         <div className="sm:col-span-2">
           <Field label="Clinician">
-            <select
+            <Select
               className={inputClass}
               value={clinicianId}
-              onChange={(e) => setClinicianId(e.target.value)}
+              onChange={(e) => refit({ clinician: e.target.value })}
             >
               {clinicians.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}, {c.discipline}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         </div>
         <Field label="Day">
-          <select
+          <Select
             className={inputClass}
             value={day}
-            onChange={(e) => setDay(Number(e.target.value))}
+            onChange={(e) => refit({ day: Number(e.target.value) })}
           >
             {bookableDays.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.label}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label="Start time">
-          <select
+          <Select
             className={inputClass}
             value={start}
             onChange={(e) => setStart(Number(e.target.value))}
@@ -166,30 +182,30 @@ export function BookVisitSheet({
                 {formatTime(t)}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label="Length">
-          <select
+          <Select
             className={inputClass}
             value={duration}
-            onChange={(e) => setDuration(Number(e.target.value))}
+            onChange={(e) => refit({ duration: Number(e.target.value) })}
           >
             {[30, 45, 60, 90].map((m) => (
               <option key={m} value={m}>
                 {m} minutes
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label="Type">
-          <select
+          <Select
             className={inputClass}
             value={type}
             onChange={(e) => setType(e.target.value as "Home visit" | "Telehealth")}
           >
             <option>Home visit</option>
             <option>Telehealth</option>
-          </select>
+          </Select>
         </Field>
       </div>
 

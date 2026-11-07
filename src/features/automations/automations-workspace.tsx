@@ -25,6 +25,7 @@ import {
 import { weeks } from "@/data/weeks";
 import { cn } from "@/lib/cn";
 import { useDemoStore } from "@/state/demo-store";
+import { Select } from "@/components/ui/select";
 
 const categoryColour: Record<AutomationCategory, string> = {
   Documentation: colour.series1,
@@ -255,7 +256,7 @@ export function AutomationsWorkspace() {
             />
             <label className="flex flex-col gap-1">
               <span className="eyebrow">When</span>
-              <select
+              <Select
                 className={selectClass}
                 value={triggerId}
                 onChange={(e) => {
@@ -268,11 +269,11 @@ export function AutomationsWorkspace() {
                     {t.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <label className="flex flex-col gap-1">
               <span className="eyebrow">If</span>
-              <select
+              <Select
                 className={selectClass}
                 value={condition}
                 onChange={(e) => {
@@ -283,11 +284,11 @@ export function AutomationsWorkspace() {
                 {builderConditions.map((c) => (
                   <option key={c}>{c}</option>
                 ))}
-              </select>
+              </Select>
             </label>
             <label className="flex flex-col gap-1">
               <span className="eyebrow">Then</span>
-              <select
+              <Select
                 className={selectClass}
                 value={actionIndex}
                 onChange={(e) => {
@@ -300,7 +301,7 @@ export function AutomationsWorkspace() {
                     {a.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <p className="rounded-control bg-surface-sunken px-3 py-2.5 text-small text-ink-700">
               <Zap

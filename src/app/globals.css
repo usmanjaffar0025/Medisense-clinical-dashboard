@@ -407,6 +407,30 @@ html[data-theme="clear-blue"] .stat-band .headline {
   letter-spacing: -0.025em;
 }
 
+html[data-theme="clear-blue"] .stat-band .headline.text-stat-sm {
+  font-size: 26px;
+  line-height: 32px;
+}
+
+/* Status tags keep their colour on a white pill so they read on the dark header. */
+html[data-theme="clear-blue"]
+  .page-hero
+  :is(.bg-over-bg, .bg-monitor-bg, .bg-healthy-bg, .bg-available-bg) {
+  background-color: #ffffff;
+}
+
+html[data-theme="clear-blue"] .page-hero .text-over {
+  color: #c0271c;
+}
+
+html[data-theme="clear-blue"] .page-hero .text-monitor {
+  color: #a8480a;
+}
+
+html[data-theme="clear-blue"] .page-hero .text-healthy {
+  color: #067a55;
+}
+
 html[data-theme="clear-blue"] .ai-surface {
   border: 1px solid transparent;
   background:
@@ -545,7 +569,7 @@ html[data-theme="clear-blue"][data-palette="green"] .ai-surface {
 
 @media (prefers-reduced-motion: no-preference) {
   html[data-theme="clear-blue"] :is(.page-hero, .stat-band > *) {
-    animation: rise-in 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation: rise-in 420ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
   }
 
   html[data-theme="clear-blue"] .stat-band > :nth-child(2) {

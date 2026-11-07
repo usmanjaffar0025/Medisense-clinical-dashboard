@@ -7,6 +7,7 @@ import { clinicians, sites } from "@/data/clinicians";
 import { newClientId, regionForSuburb, type ClientRecord } from "@/data/records";
 import type { Funding, Site } from "@/data/types";
 import { useDemoStore } from "@/state/demo-store";
+import { Select } from "@/components/ui/select";
 
 const FORM_ID = "client-form";
 
@@ -106,14 +107,14 @@ export function ClientFormSheet({
           />
         </Field>
         <Field label="Funding">
-          <select
+          <Select
             className={inputClass}
             value={form.funding}
             onChange={(e) => set("funding", e.target.value as Funding)}
           >
             <option>NDIS</option>
             <option>Aged care</option>
-          </select>
+          </Select>
         </Field>
         <div className="sm:col-span-2">
           <Field label="Service" error={errors.service}>
@@ -135,7 +136,7 @@ export function ClientFormSheet({
           />
         </Field>
         <Field label="Region">
-          <select
+          <Select
             className={inputClass}
             value={form.region}
             onChange={(e) => set("region", e.target.value as Site)}
@@ -143,11 +144,11 @@ export function ClientFormSheet({
             {sites.map((s) => (
               <option key={s}>{s}</option>
             ))}
-          </select>
+          </Select>
         </Field>
         <div className="sm:col-span-2">
           <Field label="Clinician">
-            <select
+            <Select
               className={inputClass}
               value={form.clinician}
               onChange={(e) => set("clinician", e.target.value)}
@@ -157,7 +158,7 @@ export function ClientFormSheet({
                   {c.name}, {c.discipline}, {c.utilisation}% full
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         </div>
         <Field label="Main contact">
@@ -175,7 +176,7 @@ export function ClientFormSheet({
           />
         </Field>
         <Field label="Status">
-          <select
+          <Select
             className={inputClass}
             value={form.state}
             onChange={(e) => set("state", e.target.value as ClientRecord["state"])}
@@ -183,7 +184,7 @@ export function ClientFormSheet({
             <option>New</option>
             <option>Active</option>
             <option>Paused</option>
-          </select>
+          </Select>
         </Field>
       </form>
     </Sheet>

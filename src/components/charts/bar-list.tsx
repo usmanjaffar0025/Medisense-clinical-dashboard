@@ -42,6 +42,7 @@ export function BarList({
   onSelect,
   labelWidth = 128,
   unit,
+  fill = false,
 }: {
   data: BarDatum[];
   label: string;
@@ -52,6 +53,8 @@ export function BarList({
   onSelect?: (id: string | null) => void;
   labelWidth?: number;
   unit?: string;
+  /** Stretches the chart to the height of its card, keeping each row at least its usual size. */
+  fill?: boolean;
 }) {
   const hasGhost = data.some((d) => d.ghost !== undefined);
   const height = data.length * ROW + 28;
@@ -63,8 +66,11 @@ export function BarList({
   }
 
   return (
-    <figure aria-label={label} className="m-0">
-      <div style={{ height }}>
+    <figure aria-label={label} className={fill ? "m-0 flex min-h-0 flex-1 flex-col" : "m-0"}>
+      <div
+        style={fill ? { minHeight: height } : { height }}
+        className={fill ? "flex-1" : undefined}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}

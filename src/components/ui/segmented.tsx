@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { Select } from "./select";
 
 export type SegmentOption<T extends string> = { id: T; label: string };
 
@@ -56,14 +57,14 @@ export function SelectField({
   return (
     <label className="flex items-center gap-2">
       <span className="text-caption font-medium text-ink-500">{label}</span>
-      <select
+      <Select
         aria-label={label}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-8 cursor-pointer rounded-control border border-border bg-surface pr-7 pl-2.5 text-small text-ink-700"
+        className="h-8 w-auto min-w-36 border-border bg-surface px-2.5 text-ink-700"
       >
         {children}
-      </select>
+      </Select>
     </label>
   );
 }

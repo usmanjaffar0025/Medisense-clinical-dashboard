@@ -12,9 +12,9 @@ export type Metric = {
 const captionTone = { over: "text-over", monitor: "text-monitor" };
 
 const columns = {
-  5: "grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,2fr)]",
-  6: "grid-cols-2 lg:grid-cols-6",
-  8: "grid-cols-2 lg:grid-cols-8",
+  5: "grid-cols-2 lg:grid-cols-5",
+  6: "grid-cols-2 md:grid-cols-3",
+  8: "grid-cols-2 lg:grid-cols-4",
 };
 
 /** A single hairline-divided band of figures, used in place of separate stat cards. */

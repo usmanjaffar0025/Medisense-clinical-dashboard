@@ -27,7 +27,8 @@ import type { Clinician, Discipline, Site } from "@/data/types";
 import { cn } from "@/lib/cn";
 import { Recommendation } from "./recommendation";
 
-const COLUMNS = "minmax(150px,1.5fr) 56px 64px 92px minmax(130px,1.2fr) 104px 96px 56px 64px 124px";
+const COLUMNS =
+  "minmax(150px,1.5fr) 64px 76px 92px minmax(130px,1.2fr) 112px 104px 64px 92px 124px";
 const CANDIDATE_COLUMNS = "minmax(140px,1.2fr) minmax(170px,1.6fr) 96px 92px 110px";
 
 /** Filled, open and over-capacity places, counted per clinician so one clinician's overflow is not hidden by another's spare places. */
@@ -153,7 +154,10 @@ export function TeamCapacity() {
       </FilterBar>
 
       <div className="grid items-stretch gap-6 lg:grid-cols-12">
-        <Card aria-labelledby="utilisation" className="px-6 pt-5 pb-4.5 lg:col-span-8">
+        <Card
+          aria-labelledby="utilisation"
+          className="flex flex-col px-6 pt-5 pb-4.5 lg:col-span-8"
+        >
           <CardTitle
             id="utilisation"
             className="mb-3 items-end"
@@ -176,6 +180,7 @@ export function TeamCapacity() {
             unit="of capacity"
             labelWidth={124}
             references={[{ x: 100, label: "100%" }]}
+            fill
           />
         </Card>
 
